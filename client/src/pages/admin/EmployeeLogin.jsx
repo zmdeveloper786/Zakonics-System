@@ -22,7 +22,7 @@ const EmployeeLogin = () => {
         setLoading(true);
 
         try {
-            const res = await axios.post("http://app.zumarlawfirm.com:5000/employee-login", {
+            const res = await axios.post("https://app.zumarlawfirm.com:5000/employee-login", {
                 email,
                 password
             });
@@ -126,7 +126,7 @@ const EmployeeLogin = () => {
                                     onClick={async () => {
                                         if (!resetEmail) return toast.error('Enter your email');
                                         try {
-                                            const res = await axios.post('http://app.zumarlawfirm.com:5000/employee-forgot-password', { email: resetEmail });
+                                            const res = await axios.post('https://app.zumarlawfirm.com:5000/employee-forgot-password', { email: resetEmail });
                                             setResetToken(res.data.resetToken);
                                             setResetStep(2);
                                             toast.success('Reset token generated. Check your email or paste below.');
@@ -160,7 +160,7 @@ const EmployeeLogin = () => {
                                     onClick={async () => {
                                         if (!resetToken || !newPassword) return toast.error('Fill all fields');
                                         try {
-                                            await axios.post('http://app.zumarlawfirm.com:5000/employee-reset-password', { resetToken, newPassword });
+                                            await axios.post('https://app.zumarlawfirm.com:5000/employee-reset-password', { resetToken, newPassword });
                                             toast.success('Password reset! You can now log in.');
                                             setShowResetModal(false);
                                             setResetStep(1);
@@ -187,7 +187,7 @@ const EmployeeLogin = () => {
                     >
                         {loading ? (
                             <span className="flex items-center justify-center">
-                                <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg className="animate-spin h-5 w-5 text-white mr-2" xmlns="https://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z" />
                                 </svg>

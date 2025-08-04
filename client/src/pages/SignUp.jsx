@@ -38,7 +38,7 @@ const SignUp = () => {
     }
 
     try {
-      const response = await axios.post('http://app.zumarlawfirm.com:5000/auth/signup', {
+      const response = await axios.post('https://app.zumarlawfirm.com:5000/auth/signup', {
         firstName: formData.firstName,
         lastName: formData.lastName,
         CNIC: formData.CNIC,
@@ -61,7 +61,7 @@ const SignUp = () => {
 
   const handleGoogleSignup = () => {
     toast.loading('Redirecting to Google...');
-    window.location.href = 'http://app.zumarlawfirm.com:5000/auth/google';
+    window.location.href = 'https://app.zumarlawfirm.com:5000/auth/google';
   };
 
   useEffect(() => {

@@ -60,7 +60,7 @@ const Home = () => {
 
       const verifyUser = async () => {
         try {
-          const res = await fetch('http://app.zumarlawfirm.com:5000/auth/verify-user', {
+          const res = await fetch('https://app.zumarlawfirm.com:5000/auth/verify-user', {
             headers: {
               Authorization: `Bearer ${token}`,
             },

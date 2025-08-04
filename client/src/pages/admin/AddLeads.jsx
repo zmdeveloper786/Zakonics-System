@@ -12,7 +12,7 @@ const AddLeads = () => {
         // Fetch employees from backend Roles model
        const fetchEmployees = async () => {
       try {
-        const res = await axios.get('http://app.zumarlawfirm.com:5000/admin/roles');
+        const res = await axios.get('https://app.zumarlawfirm.com:5000/admin/roles');
         const employeesArr = Array.isArray(res.data)
           ? res.data.filter(emp => typeof emp.name === 'string' && emp.name.trim() !== '')
           : [];
@@ -41,7 +41,7 @@ const AddLeads = () => {
             remarks: data.remarks,
         };
         try {
-            await axios.post('http://app.zumarlawfirm.com:5000/leads', lead);
+            await axios.post('https://app.zumarlawfirm.com:5000/leads', lead);
             toast.success('Lead added successfully!');
             reset();
         } catch (err) {
