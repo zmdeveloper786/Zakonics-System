@@ -1,0 +1,18 @@
+@import 'tailwindcss';
+
+* {
+  font-family: 'Poppins', sans-serif;
+}
+
+.invoice-content {
+  /* white with 80% opacity */
+  overflow: visible !important;
+  max-height: none !important;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; 
+  scrollbar-width: none;
+}
