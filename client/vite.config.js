@@ -10,8 +10,8 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/manualService': 'https://app.zumarlawfirm.com:5000',
-      '/uploads': 'https://app.zumarlawfirm.com:5000',
+      '/manualService': 'https://app.zumarlawfirm.com',
+      '/uploads': 'https://app.zumarlawfirm.com',
     },
   },
 })

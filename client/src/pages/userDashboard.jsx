@@ -42,7 +42,7 @@ const UserDashboard = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
 
-      const response = await axios.get('https://app.zumarlawfirm.com:5000/userpanel/services', {
+      const response = await axios.get('https://app.zumarlawfirm.com/userpanel/services', {
         headers: {
           Authorization: `Bearer ${token}`
         },
@@ -60,7 +60,7 @@ const UserDashboard = () => {
   // Helper to get certificate file URL (assuming backend saves filename in service.certificate)
   const getCertificateUrl = (service) => {
     if (!service.certificate) return null;
-    return `https://app.zumarlawfirm.com:5000/uploads/${service.certificate}`;
+    return `https://app.zumarlawfirm.com/uploads/${service.certificate}`;
   };
 
   // View certificate handler
