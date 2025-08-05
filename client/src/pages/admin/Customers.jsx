@@ -11,10 +11,14 @@ const Customers = () => {
     const fetchUsers = async () => {
       try {
         const res = await axios.get('https://app.zumarlawfirm.com/admin/customers');
-        setUsers(res.data);
-        setFilteredUsers(res.data);
+        // Ensure always array
+        const arr = Array.isArray(res.data) ? res.data : [];
+        setUsers(arr);
+        setFilteredUsers(arr);
       } catch (error) {
         console.error('Error fetching customers:', error);
+        setUsers([]);
+        setFilteredUsers([]);
       } finally {
         setLoading(false);
       }
