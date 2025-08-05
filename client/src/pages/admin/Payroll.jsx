@@ -35,7 +35,8 @@ export default function Payroll() {
       setLoading(true);
       try {
         const res = await axios.get("https://app.zumarlawfirm.com/payrolls");
-        setPayrolls(res.data);
+        // Ensure always array
+        setPayrolls(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         setPayrolls([]);
       } finally {
@@ -50,7 +51,8 @@ export default function Payroll() {
     const fetchEmployees = async () => {
       try {
         const res = await axios.get("https://app.zumarlawfirm.com/admin/roles", { withCredentials: true });
-        setEmployeeList(res.data);
+        // Ensure always array
+        setEmployeeList(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         setEmployeeList([]);
       }

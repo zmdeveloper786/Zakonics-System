@@ -78,9 +78,11 @@ const Roles = () => {
       const response = await axios.get('https://app.zumarlawfirm.com/admin/roles', {
         withCredentials: true
       });
-      setEmployees(response.data);
+      // Ensure always array
+      setEmployees(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       toast.error('Failed to fetch employees');
+      setEmployees([]);
     } finally {
       setLoading(false);
     }
