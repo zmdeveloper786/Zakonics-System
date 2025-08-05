@@ -47,6 +47,7 @@ const Sidebar = () => {
                         setAssignedPages([]);
                         setAssignedPagesError('No assigned pages returned');
                     }
+
                 } catch (err) {
                     setAssignedPages([]);
                     if (err?.response?.status === 401) {
@@ -129,29 +130,29 @@ const Sidebar = () => {
     ];
 
     const menuItems = allMenuItems.map(item => {
-    if (isAdmin) {
-        // Admins see all menu items and all children
+        if (isAdmin) {
+            // Admins see all menu items and all children
+            return {
+                ...item,
+                enabled: true,
+                children: (item.children || []).map(child => ({ ...child, enabled: true }))
+            };
+        }
+
+        // Employees see only assigned pages
+        const isParentEnabled = assignedPages.includes(item.path);
+        const childItems = (item.children || []).map(child => ({
+            ...child,
+            enabled: assignedPages.includes(child.path)
+        }));
+        const hasVisibleChildren = childItems.some(c => c.enabled);
+
         return {
             ...item,
-            enabled: true,
-            children: (item.children || []).map(child => ({ ...child, enabled: true }))
+            enabled: isParentEnabled || hasVisibleChildren,
+            children: childItems
         };
-    }
-
-    // Employees see only assigned pages
-    const isParentEnabled = assignedPages.includes(item.path);
-    const childItems = (item.children || []).map(child => ({
-        ...child,
-        enabled: assignedPages.includes(child.path)
-    }));
-    const hasVisibleChildren = childItems.some(c => c.enabled);
-
-    return {
-        ...item,
-        enabled: isParentEnabled || hasVisibleChildren,
-        children: childItems
-    };
-});
+    });
 
     return (
         <>
