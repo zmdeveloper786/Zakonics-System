@@ -1,4 +1,4 @@
-import mongoose  from 'mongoose';
+import mongoose from 'mongoose';
 
 
 // Sub-schema for file metadata
@@ -19,7 +19,11 @@ const ConvertedLeadSchema = new mongoose.Schema({
   email: String,
   assigned: { type: String, default: '' },
   service: String,
-  status: { type: String, enum: ['pending', 'processing', 'converted', 'completed'], default: 'converted' },
+status: {
+  type: String,
+  enum: ['pending', 'processing', 'converted', 'completed', 'Follow-up', 'Mature', 'Contacted'],
+  default: 'converted'
+},
   // Dynamic fields
   fields: { type: Object, default: {} },
   // File uploads (store file names/paths)
@@ -31,4 +35,4 @@ const ConvertedLeadSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default  mongoose.model('ConvertedLead', ConvertedLeadSchema);
+export default mongoose.model('ConvertedLead', ConvertedLeadSchema);
