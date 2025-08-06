@@ -98,7 +98,7 @@ const FollowupLeads = () => {
       setConvertFiles({});
       setMemberCnics([]);
       setMemberDetails([]);
-      setSelectedRow(null);
+      setSelectedRows([]);
     } catch (err) {
       toast.error('Failed to convert lead');
     } finally {

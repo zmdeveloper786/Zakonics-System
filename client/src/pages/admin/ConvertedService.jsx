@@ -216,7 +216,7 @@ const ConvertedService = () => {
       setSelectAll(true);
     }
   };
-  
+
   const handleSelectRow = (id) => {
     if (selectedRows.includes(id)) {
       setSelectedRows(selectedRows.filter(rowId => rowId !== id));
@@ -251,7 +251,7 @@ const ConvertedService = () => {
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto">
         <h1 className="text-2xl font-bold text-[#57123f] mb-6">Converted Leads</h1>
-       
+
         <div className="flex flex-wrap gap-4 mb-6 items-center">
           <div className="relative flex-1 max-w-sm">
             <FaSearch className="absolute left-3 top-2 text-gray-400" />
@@ -287,7 +287,7 @@ const ConvertedService = () => {
           >
             Generate Invoice
           </button>
- <button
+          <button
             className="bg-[#57123f] text-white px-5 py-2 rounded-full font-semibold hover:bg-[#57123f] transition"
             onClick={() => {
               if (selectedRows.length !== 1) return toast.error('Select exactly one lead to upload certificate');
@@ -481,7 +481,7 @@ const ConvertedService = () => {
                         if (!invoiceRef.current) return toast.error('Invoice content not found');
                         // Wait for images to load
                         const images = invoiceRef.current.querySelectorAll('img');
-                        await Promise.all(Array.from(images).map(img => img.complete ? Promise.resolve() : new Promise(res => { img.onload = res; }))); 
+                        await Promise.all(Array.from(images).map(img => img.complete ? Promise.resolve() : new Promise(res => { img.onload = res; })));
                         await new Promise(res => setTimeout(res, 300));
                         // Fix unsupported oklch() color by overriding all color/backgroundColor styles
                         const elements = invoiceRef.current.querySelectorAll('*');
