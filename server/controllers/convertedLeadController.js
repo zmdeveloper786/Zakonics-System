@@ -32,23 +32,41 @@ function extractFilesFromReq(req) {
 
 export const createConvertedLead = async (req, res) => {
   try {
-    // Basic fields
+    console.log('FILES:', req.files);
+    console.log('BODY:', req.body);
+
     const { name, cnic, phone, email, assigned, service, status, ...rest } = req.body;
-    // Dynamic fields (non-file)
     const fields = { ...rest };
-    // File fields
-    const files = extractFilesFromReq(req);
+
+    // Check multer structure — log req.files and format if needed
+    const files = {};
+    if (req.files) {
+      req.files.forEach(file => {
+        if (!files[file.fieldname]) files[file.fieldname] = [];
+        files[file.fieldname].push(file.filename);
+      });
+    }
+
     const lead = new ConvertedLead({
-      name, cnic, phone, email, assigned, service, status,
+      name,
+      cnic,
+      phone,
+      email,
+      assigned,
+      service,
+      status,
       fields,
       files,
     });
+
     await lead.save();
     res.status(201).json({ success: true, lead });
   } catch (err) {
+    console.error('❌ CREATE ERROR:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
 
 export const getAllConvertedLeads = async (req, res) => {
   try {
@@ -138,7 +156,7 @@ export const uploadCertificate = async (req, res) => {
     const lead = await ConvertedLead.findById(req.params.id);
     if (!lead) return res.status(404).json({ success: false, message: 'Lead not found' });
     if (!req.file) return res.status(400).json({ success: false, message: 'No file uploaded' });
-     lead.certificate = req.file.filename;
+    lead.certificate = req.file.filename;
     await lead.save();
     res.json({ success: true, message: 'Certificate uploaded', certificate: req.file.filename });
   } catch (err) {
