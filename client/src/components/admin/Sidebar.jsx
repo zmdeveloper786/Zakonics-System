@@ -47,7 +47,6 @@ const Sidebar = () => {
                         setAssignedPages([]);
                         setAssignedPagesError('No assigned pages returned');
                     }
-
                 } catch (err) {
                     setAssignedPages([]);
                     if (err?.response?.status === 401) {
