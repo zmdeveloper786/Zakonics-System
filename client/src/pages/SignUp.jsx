@@ -9,13 +9,12 @@ import toast, { Toaster } from 'react-hot-toast';
 const SignUp = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    CNIC: '',
-    email: '',
-    phoneNumber: '',
-    password: '',
-    confirmPassword: ''
+  firstName: '',
+  lastName: '',
+  email: '',
+  phoneNumber: '',
+  password: '',
+  confirmPassword: ''
   });
 
   const handleChange = (e) => {
@@ -41,7 +40,6 @@ const SignUp = () => {
       const response = await axios.post('https://app.zumarlawfirm.com/auth/signup', {
         firstName: formData.firstName,
         lastName: formData.lastName,
-        CNIC: formData.CNIC,
         email: formData.email,
         phoneNumber: formData.phoneNumber,
         password: formData.password
@@ -116,14 +114,7 @@ const SignUp = () => {
               placeholder="Last Name"
               onChange={handleChange}
             />
-            <input
-              name="CNIC"
-              type="text"
-              required
-              className="w-full px-3 py-2 border rounded-full"
-              placeholder="CNIC : *****-*******-*"
-              onChange={handleChange}
-            />
+            {/* CNIC field removed */}
           </div>
           <input
             name="email"
@@ -164,7 +155,7 @@ const SignUp = () => {
 
 
 
-        <div className="text-center mt-4">
+  <div className="text-center mt-4">
           <Link to="/login" className="text-[#57123f] hover:text-black transition duration-200">
             Already have an account? Sign in
           </Link>

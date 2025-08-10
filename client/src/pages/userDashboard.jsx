@@ -1,5 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
+import { serviceData } from '../data/serviceSchemas';
+import jsPDF from 'jspdf';
 import axios from 'axios';
 import { FaEye, FaDownload, FaMoneyBillWave, FaUserCheck, FaRegFileAlt } from 'react-icons/fa';
 
@@ -12,6 +14,7 @@ const UserDashboard = () => {
   const [certFile, setCertFile] = useState(null);
   const [certType, setCertType] = useState('');
   const [selectedRows, setSelectedRows] = useState([]);
+  const [showSlipModal, setShowSlipModal] = useState(false);
 
   // Handler for main checkbox
   const handleSelectAll = (e) => {
@@ -89,7 +92,119 @@ const UserDashboard = () => {
 
   // Calculate due payments
   const dueServices = userServices.filter(s => s.paymentStatus !== 'submit');
+  const [selectedDueRows, setSelectedDueRows] = useState([]);
   const totalDue = dueServices.reduce((sum, s) => sum + (parseFloat(s.paymentAmount) || 0), 0);
+
+  // Handler for due payment checkboxes
+  const handleDueSelectRow = (id) => {
+    setSelectedDueRows(prev =>
+      prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
+    );
+  };
+  const handleDueSelectAll = (e) => {
+    if (e.target.checked) {
+      setSelectedDueRows(dueServices.map(s => s._id || s.serviceTitle));
+    } else {
+      setSelectedDueRows([]);
+    }
+  };
+
+  // PDF generation for payment slip
+  const handleGeneratePdfSlip = () => {
+    const doc = new jsPDF();
+    // Header with colored background
+    doc.setFillColor(87, 18, 63); // #57123f
+    doc.rect(0, 0, 210, 30, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(22);
+    doc.text('Zumar Law Firm', 105, 15, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text('Payment Slip', 105, 25, { align: 'center' });
+
+    // User Details Section
+    let y = 36;
+    doc.setFontSize(12);
+    doc.setTextColor(87, 18, 63);
+    doc.text(`Name: ${userInfo?.firstName || ''} ${userInfo?.lastName || ''}`, 15, y);
+    doc.text(`Email: ${userInfo?.email || ''}`, 120, y);
+    y += 6;
+
+    // Section divider
+    doc.setDrawColor(87, 18, 63);
+    doc.setLineWidth(1);
+    doc.line(15, y, 195, y);
+    y += 7;
+
+    doc.setTextColor(87, 18, 63);
+    doc.setFontSize(13);
+    doc.text('Selected Services & Charges', 15, y);
+    y += 6;
+    // Table header
+    doc.setFontSize(11);
+    doc.setFillColor(243, 232, 255); // #f3e8ff
+    doc.rect(15, y, 180, 8, 'F');
+    doc.setTextColor(87, 18, 63);
+    doc.text('Service', 25, y + 6);
+    doc.text('Price', 170, y + 6);
+    y += 12;
+    // Table rows
+    const selected = dueServices.filter(s => selectedDueRows.includes(s._id || s.serviceTitle));
+    selected.forEach((s, i) => {
+      const price = serviceData.prices[s.serviceTitle] || s.paymentAmount || 'N/A';
+      doc.setTextColor(40, 40, 40);
+      doc.text(`${i + 1}. ${s.serviceTitle || 'Service'}`, 25, y);
+      doc.text(`${price} PKR`, 170, y);
+      y += 8;
+    });
+    y += 4;
+    // Section divider
+    doc.setDrawColor(87, 18, 63);
+    doc.setLineWidth(0.5);
+    doc.line(15, y, 195, y);
+    y += 8;
+    // Bank details
+    doc.setFontSize(13);
+    doc.setTextColor(87, 18, 63);
+    doc.text('Company Bank Accounts', 15, y);
+    y += 6;
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 40);
+    doc.text('Bank Name: United Bank Limited', 20, y); y += 6;
+    doc.text('Account Title: Zumar Law Associate (Smc-Private) Limited', 20, y); y += 6;
+    doc.text('Account Number: 0352305145103', 20, y); y += 6;
+    doc.text('IBAN: PK88UNIL0109000305145103', 20, y); y += 10;
+    
+    doc.text('Bank Name: United Bank Limited', 20, y); y += 6;
+    doc.text('Account Title: Zumar Law Firm', 20, y); y += 6;
+    doc.text('Account Number: 0352330108476', 20, y); y += 6;
+    doc.text('IBAN: PK16UNIL0109000330108476', 20, y); y += 10;
+
+    
+
+    // Section divider
+    doc.setDrawColor(87, 18, 63);
+    doc.setLineWidth(0.5);
+    doc.line(15, y, 195, y);
+    y += 8;
+    // WhatsApp info
+    doc.setFontSize(13);
+    doc.setTextColor(87, 18, 63);
+    doc.text('WhatsApp for Payment Screenshot', 15, y);
+    y += 6;
+    doc.setFontSize(11);
+    doc.setTextColor(40, 40, 40);
+    doc.text('WhatsApp: +92 325 4992099', 20, y); y += 10;
+
+    // Footer with colored background
+    doc.setFillColor(87, 18, 63);
+    doc.rect(0, 280, 210, 17, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(11);
+    doc.text('Thank you for choosing Zumar Law Firm.', 105, 287, { align: 'center' });
+    doc.text('For queries, contact: +92 325 4992099', 105, 293, { align: 'center' });
+
+    doc.save('PaymentSlip.pdf');
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8e6f2] via-[#f3f0fa] to-[#f7f7fa] py-10 px-2 md:px-4">
@@ -144,7 +259,7 @@ const UserDashboard = () => {
                             </span>
                           );
                         })()}
-                    </td>
+                      </td>
                       <td className="py-2 px-2 flex gap-2 text-[#57123f]">
                         <button className="hover:text-[#57123f] transition" title="View Certificate" onClick={() => handleViewCertificate(service)}>
                           <FaEye />
@@ -166,24 +281,97 @@ const UserDashboard = () => {
               <FaMoneyBillWave className="text-[#57123f]" /> Due Payment
             </h3>
             <p className="text-3xl font-extrabold text-[#57123f] mb-2">{totalDue > 0 ? totalDue.toLocaleString() + ' PKR' : '0 PKR'}</p>
-            <ul className="text-sm text-gray-700 mb-4 list-disc list-inside max-h-32 overflow-y-auto">
+            <div className="mb-4 max-h-40 overflow-y-auto">
+              <div className="flex items-center mb-2">
+                <input
+                  type="checkbox"
+                  className="accent-[#57123f] mr-2"
+                  checked={dueServices.length > 0 && selectedDueRows.length === dueServices.length}
+                  onChange={handleDueSelectAll}
+                  indeterminate={selectedDueRows.length > 0 && selectedDueRows.length < dueServices.length ? 'true' : undefined}
+                />
+                <span className="font-semibold">Select All</span>
+              </div>
               {dueServices.length === 0 ? (
-                <li>No due payments</li>
+                <div className="text-gray-500">No due payments</div>
               ) : (
                 dueServices.map((s, i) => (
-                  <li key={s._id || i} className="flex justify-between items-center">
-                    <span>{s.serviceTitle || 'Service'}</span>
-                    <span className="ml-2 text-[#57123f] font-semibold">{s.paymentAmount ? `${s.paymentAmount} PKR` : 'N/A'}</span>
-                  </li>
+                  <div key={s._id || i} className="flex items-center justify-between py-1">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        className="accent-[#57123f] mr-2"
+                        checked={selectedDueRows.includes(s._id || s.serviceTitle)}
+                        onChange={() => handleDueSelectRow(s._id || s.serviceTitle)}
+                      />
+                      <span>{s.serviceTitle || 'Service'}</span>
+                    </div>
+                    <span className="ml-2 text-[#57123f] font-semibold">{serviceData.prices[s.serviceTitle] ? `${serviceData.prices[s.serviceTitle]} PKR` : (s.paymentAmount ? `${s.paymentAmount} PKR` : 'N/A')}</span>
+                  </div>
                 ))
               )}
-            </ul>
+            </div>
             <button
               className="bg-[#57123f] hover:bg-[#4a0f35] transition text-white w-full py-2 rounded-lg font-semibold shadow"
-              onClick={() => alert('Payment slip generation coming soon!')}
-              disabled={dueServices.length === 0}
+              onClick={handleGeneratePdfSlip}
+              disabled={selectedDueRows.length === 0}
             >
-              Generate Payment Slip
+              Generate Payment Slip (PDF)
+              {/* Payment Slip Modal */}
+              {showSlipModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white p-6 rounded-xl w-full max-w-lg relative">
+                    <button
+                      className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl"
+                      onClick={() => setShowSlipModal(false)}
+                      title="Close"
+                    >
+                      &times;
+                    </button>
+                    <h2 className="text-xl font-bold mb-4 text-[#57123f]">Payment Slip</h2>
+                    <div className="mb-4">
+                      <h3 className="font-semibold mb-2">Selected Services & Charges</h3>
+                      <ul className="list-disc list-inside text-sm">
+                        {dueServices.filter(s => selectedDueRows.includes(s._id || s.serviceTitle)).map((s, i) => (
+                          <li key={s._id || i} className="flex justify-between items-center">
+                            <span>{s.serviceTitle || 'Service'}</span>
+                            <span className="ml-2 text-[#57123f] font-semibold">{s.paymentAmount ? `${s.paymentAmount} PKR` : 'N/A'}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div className="mb-4">
+                      <h3 className="font-semibold mb-2">Company Bank Accounts</h3>
+                      <div className="bg-gray-100 p-3 rounded text-sm">
+                        <div><span className="font-bold">Bank Name:</span> United Bank Limited</div>
+                        <div><span className="font-bold">Account Title:</span> Zumar Law Associate (Smc-Private) Limited</div>
+                        <div><span className="font-bold">Account Number:</span> 0352305145103</div>
+                        <div><span className="font-bold">IBAN:</span> PK88UNIL0109000305145103</div>
+                        <div className="mt-2"></div>
+                        <div><span className="font-bold">Bank Name:</span> United Bank Limited</div>
+                        <div><span className="font-bold">Account Title:</span> Zumar Law Firm</div>
+                        <div><span className="font-bold">Account Number:</span> 0352330108476</div>
+                        <div><span className="font-bold">IBAN:</span> PK16UNIL0109000330108476</div>
+                      </div>
+                    </div>
+                    <div className="mb-4">
+                      <h3 className="font-semibold mb-2">WhatsApp for Payment Screenshot</h3>
+                      <div className="bg-green-50 p-3 rounded text-sm">
+                        <span className="font-bold">WhatsApp Number:</span> <a href="https://wa.me/923254992099" target="_blank" rel="noopener noreferrer" className="text-green-700 underline">+92 325 4992099</a>
+                        <div className="mt-2 text-xs text-gray-600">Send your payment screenshot here after submitting your fee.</div>
+                      </div>
+                    </div>
+                    <div className="flex justify-end mt-4">
+                      <button
+                        className="bg-[#57123f] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#4a0f35] transition"
+                        onClick={() => setShowSlipModal(false)}
+                      >
+                        Close
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </button>
           </div>
         </div>

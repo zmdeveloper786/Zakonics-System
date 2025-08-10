@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import passport from 'passport';
+import accountsRouter from './routes/accounts.js';
+import announcementsRouter from './routes/announcements.js';
 import session from 'express-session';
 import morgan from 'morgan';
 import authRoutes from './routes/auth.js';
@@ -18,10 +20,11 @@ import payrollsRoutes from './routes/payrolls.js';
 import payrollDropdownsRoutes from './routes/payrollDropdowns.js';
 import leadsRoutes from './routes/leads.js'; // Import leads routes
 import adminServiceRoutes from './routes/adminServices.js';
-
+import adminStatsRoutes from './routes/adminStats.js'
 import manualServiceRoutes from './routes/manualService.js';
 import convertedServiceRoutes from './routes/convertedService.js';
-
+import adminServiceStats from './routes/adminServiceStats.js'; // Import the new route
+import latestCompletedServices from './routes/latestCompletedServices.js';
 
 import './config/passport.js';
 import path from 'path';
@@ -56,6 +59,9 @@ app.use(session({
 
 // Passport middleware
 app.use(passport.initialize());
+
+// Announcements route
+app.use('/announcements', announcementsRouter);
 app.use(passport.session());
 app.use('/admin', roleRoutes);
 
@@ -79,6 +85,10 @@ app.use('/leads', leadsRoutes); // Register leads routes
 app.use('/manualService', manualServiceRoutes);
 app.use('/admin/services/converted', convertedServiceRoutes);
 app.use('/convertedService', convertedServiceRoutes);
+app.use('/admin', adminStatsRoutes);
+app.use('/admin', adminServiceStats); // Register the new route
+app.use('/admin', latestCompletedServices); // Register the latestCompletedServices route
+app.use('/accounts', accountsRouter);
 
 // Error handler
 app.use((err, req, res, next) => {

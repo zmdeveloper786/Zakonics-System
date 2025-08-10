@@ -1,14 +1,33 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import { FaUserCircle } from 'react-icons/fa';
 import { FiChevronDown } from 'react-icons/fi';
 
-const clients = [
-  { name: 'Ahmad Khan', service: 'NTN Registration', date: '01.05.2025 - 03.05.2025', amount: 'Rs 3500', status: 'Active', action: 'Done' },
-  { name: 'Irfan Liaquat', service: 'LTD Company Registration', date: '01.05.2025 - 01.05.2025', amount: 'Rs 10,000', status: 'Active', action: 'In Hold' },
-  { name: 'Adv. Kamraan', service: 'Tax Filing', date: '01.05.2025 - 01.05.2025', amount: 'Rs 2500', status: 'On Hold', action: 'Done' },
-];
-
 const ActiveClients = () => {
+  const [latestLeads, setLatestLeads] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const navigate = useNavigate();
+  const lead = () => {
+    navigate('/admin/leads');
+  };
+  useEffect(() => {
+    const fetchLeads = async () => {
+      setLoading(true);
+      try {
+        // Fetch latest 3 leads from backend
+        const res = await axios.get('https://app.zumarlawfirm.com/admin/leads/latest?limit=3');
+        setLatestLeads(res.data);
+      } catch (err) {
+        setLatestLeads([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLeads();
+  }, []);
+
   return (
     <div className="bg-white p-6 mt-6 rounded-[20px] shadow-md">
       <div className="flex justify-between items-center mb-4">
@@ -30,44 +49,44 @@ const ActiveClients = () => {
             <tr className="bg-gray-100 text-gray-500 text-sm rounded-lg">
               <th className="py-3 px-4 rounded-l-xl">Lead Name</th>
               <th className="py-3 px-4">Service Booked</th>
-              <th className="py-3 px-4">Timeline</th>
-              <th className="py-3 px-4">Amount</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4 rounded-r-xl">Action</th>
+              <th className="py-3 px-4">Phone</th>
+              <th className="py-3 px-4">Assigned To</th>
+              <th className="py-3 px-4 rounded-r-xl">Status</th>
             </tr>
           </thead>
           <tbody>
-            {clients.map((client, idx) => (
-              <tr key={idx} className="border-t text-sm text-gray-700 hover:bg-gray-50">
-                <td className="py-4 px-4 flex items-center gap-2 font-medium">
-                  <FaUserCircle className="text-2xl text-gray-400" />
-                  {client.name}
-                </td>
-                <td className="py-4 px-4 max-w-[160px] truncate">{client.service}</td>
-                <td className="py-4 px-4">{client.date}</td>
-                <td className="py-4 px-4">{client.amount}</td>
-                <td className="py-4 px-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${client.status === 'Active' ? 'bg-green-500 text-white' :
-                      client.status === 'On Hold' ? 'bg-red-500 text-white' :
-                        'bg-yellow-400 text-black'
-                    }`}>
-                    {client.status}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${client.action === 'Done' ? 'bg-green-500 text-white' :
-                      'bg-yellow-400 text-black'
-                    }`}>
-                    {client.action}
-                  </span>
+            {latestLeads.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="py-4 px-4 text-center text-gray-500">
+                  {loading ? 'Loading...' : 'No leads found.'}
                 </td>
               </tr>
-            ))}
+            ) : (
+              latestLeads.map((client, idx) => (
+                <tr key={idx} className="border-t text-sm text-gray-700 hover:bg-gray-50">
+                  <td className="py-4 px-4 flex items-center gap-2 font-medium">
+                    <FaUserCircle className="text-2xl text-gray-400" />
+                    {client.name}
+                  </td>
+                  <td className="py-4 px-4 max-w-[160px] truncate">{client.service}</td>
+                  <td className="py-4 px-4">{client.phone || 'No Phone'}</td>
+                  <td className="py-4 px-4">{client.assigned || 'N/A'}</td>
+                  <td className="py-4 px-4">
+                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${client.status === 'Active' ? 'bg-green-500 text-white' :
+                        client.status === 'On Hold' ? 'bg-red-500 text-white' :
+                          'bg-yellow-400 text-black'
+                      }`}>
+                      {client.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
       <div className="mt-6 text-center">
-        <button className="text-[#57123f] font-semibold text-sm flex items-center justify-center gap-1 mx-auto hover:underline">
+        <button onClick={lead} className="text-[#57123f] font-semibold text-sm flex items-center cursor-pointer justify-center gap-1 mx-auto hover:underline">
           View Lead List <span>→</span>
         </button>
       </div>

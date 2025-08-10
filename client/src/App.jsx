@@ -17,6 +17,7 @@ import DirectService from './pages/DirectService';
 import UserDashboard from './pages/userDashboard';
 
 import EmployeeLogin from './pages/admin/EmployeeLogin';
+import AnnouncementForm from './pages/admin/AnnouncementForm';
 import AdminLogin from './pages/admin/AdminLogin';
 import LeadsManagment from './pages/admin/LeadsManagment';
 import ServiceProcessingPage from './pages/admin/ServiceProcessingPage';
@@ -67,7 +68,7 @@ const AppContent = () => {
 
         {/* Admin Routes */}
         <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/admin/employee-login" element={<EmployeeLogin />} />
+        <Route path="/employee-login" element={<EmployeeLogin />} />
         <Route path="/admin" element={
           <AdminPrivateRoute>
             <AdminLayout />
@@ -75,6 +76,7 @@ const AppContent = () => {
         }>
           {/* This index route renders inside AdminLayout's <Outlet /> */}
           <Route path='/admin' index element={<Dashboard />} />
+          <Route path='/admin/announcment' element={<EmployeeProtectedRoute><AnnouncementForm /></EmployeeProtectedRoute>} />
           <Route path="leads" element={<EmployeeProtectedRoute><LeadsManagment /></EmployeeProtectedRoute>} />
           <Route path="services" element={<EmployeeProtectedRoute><ServiceProcessingPage /></EmployeeProtectedRoute>} />
           <Route path="roles" element={<EmployeeProtectedRoute><Roles /></EmployeeProtectedRoute>} />

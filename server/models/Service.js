@@ -26,7 +26,7 @@ const ServiceDetailSchema = new mongoose.Schema({
   },
   certificate: { type: String, default: null }, // uploaded certificate filename
   invoiceSent: { type: Boolean, default: false }, // track if invoice sent
-  // isManualSubmission removed; manual and direct services are independent
-}, { timestamps: true });
+  createdAt: { type: Date, default: Date.now },
+});
 
 export default mongoose.model('ServiceDetail', ServiceDetailSchema);

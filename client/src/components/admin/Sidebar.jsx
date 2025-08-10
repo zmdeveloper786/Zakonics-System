@@ -129,29 +129,29 @@ const Sidebar = () => {
     ];
 
     const menuItems = allMenuItems.map(item => {
-        if (isAdmin) {
-            // Admins see all menu items and all children
-            return {
-                ...item,
-                enabled: true,
-                children: (item.children || []).map(child => ({ ...child, enabled: true }))
-            };
-        }
-
-        // Employees see only assigned pages
-        const isParentEnabled = assignedPages.includes(item.path);
-        const childItems = (item.children || []).map(child => ({
-            ...child,
-            enabled: assignedPages.includes(child.path)
-        }));
-        const hasVisibleChildren = childItems.some(c => c.enabled);
-
+    if (isAdmin) {
+        // Admins see all menu items and all children
         return {
             ...item,
-            enabled: isParentEnabled || hasVisibleChildren,
-            children: childItems
+            enabled: true,
+            children: (item.children || []).map(child => ({ ...child, enabled: true }))
         };
-    });
+    }
+
+    // Employees see only assigned pages
+    const isParentEnabled = assignedPages.includes(item.path);
+    const childItems = (item.children || []).map(child => ({
+        ...child,
+        enabled: assignedPages.includes(child.path)
+    }));
+    const hasVisibleChildren = childItems.some(c => c.enabled);
+
+    return {
+        ...item,
+        enabled: isParentEnabled || hasVisibleChildren,
+        children: childItems
+    };
+});
 
     return (
         <>

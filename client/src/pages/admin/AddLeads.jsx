@@ -25,11 +25,8 @@ const AddLeads = () => {
   }, []);
 
     const onSubmit = async (data) => {
-        // Combine CNIC parts
-        const cnic = `${data.cnicPart1}-${data.cnicPart2}-${data.cnicPart3}`;
         const lead = {
             name: data.name,
-            cnic,
             phone: `${data.countryCode}${data.phoneNumber}`,
             status: data.leadStatus || 'New Lead',
             date: new Date().toISOString().slice(0, 10),
@@ -133,7 +130,7 @@ const AddLeads = () => {
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
                             <input
-                                {...register("name", { required: "Name is required" })}
+                                {...register("name")}
                                 type="text"
                                 className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
                                 placeholder="Enter name"
@@ -142,57 +139,7 @@ const AddLeads = () => {
                         </div>
                     </div>
 
-                    <div className="mt-4">
-                        <label className='block'>
-                            <span className="text-sm font-medium text-gray-700 mb-1 flex items-center">
-                                <FiCreditCard className="mr-2" /> CNIC
-                            </span>
-                        </label>
-                        <div className="flex space-x-2">
-                            <input
-                                {...register("cnicPart1", {
-                                    required: "CNIC is required",
-                                    pattern: {
-                                        value: /^\d{5}$/,
-                                        message: "Must be 5 digits"
-                                    }
-                                })}
-                                type="text"
-                                maxLength={5}
-                                className="w-1/4 px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="XXXXX"
-                            />
-                            <span className="flex items-center">-</span>
-                            <input
-                                {...register("cnicPart2", {
-                                    required: true,
-                                    pattern: {
-                                        value: /^\d{7}$/,
-                                        message: "Must be 7 digits"
-                                    }
-                                })}
-                                type="text"
-                                maxLength={7}
-                                className="w-2/5 px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="XXXXXXX"
-                            />
-                            <span className="flex items-center">-</span>
-                            <input
-                                {...register("cnicPart3", {
-                                    required: true,
-                                    pattern: {
-                                        value: /^\d{1}$/,
-                                        message: "Must be 1 digit"
-                                    }
-                                })}
-                                type="text"
-                                maxLength={1}
-                                className="w-1/6 px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
-                                placeholder="X"
-                            />
-                        </div>
-                        {errors.cnicPart1 && <p className="mt-1 text-sm text-red-600">{errors.cnicPart1.message}</p>}
-                    </div>
+                    {/* CNIC field removed as requested */}
 
                     <div className="mt-4">
                         <label className="block">
@@ -207,12 +154,9 @@ const AddLeads = () => {
                                 className="w-20 px-2 py-2 border rounded-l-md focus:ring-blue-500 focus:border-blue-500"
                             >
                                 <option value="+92">+92</option>
-                                <option value="+1">+1</option>
-                                <option value="+44">+44</option>
                             </select>
                             <input
                                 {...register("phoneNumber", {
-                                    required: "Phone number is required",
                                     pattern: {
                                         value: /^\d{10}$/,
                                         message: "Must be 10 digits"
@@ -249,7 +193,7 @@ const AddLeads = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Service Interested in</label>
                             <div className="relative">
                                 <select
-                                    {...register("service", { required: "Service is required" })}
+                                    {...register("service")}
                                     className="w-full px-4 py-2 border rounded-md appearance-none focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">Select the service</option>
@@ -266,7 +210,7 @@ const AddLeads = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Legal Source</label>
                             <div className="relative">
                                 <select
-                                    {...register("leadSource", { required: "Lead source is required" })}
+                                    {...register("leadSource")}
                                     className="w-full px-4 py-2 border rounded-md appearance-none focus:ring-blue-500 focus:border-blue-500"
                                 >
                                     <option value="">Select the lead source</option>
@@ -285,7 +229,7 @@ const AddLeads = () => {
                             <label className="block text-sm font-medium text-gray-700 mb-1">Assigned To</label>
                             <div className="relative">
                                 <select
-                                    {...register("assignedTo", { required: "Employee assignment is required" })}
+                                    {...register("assignedTo")}
                                     className="w-full px-4 py-2 border rounded-md appearance-none focus:ring-blue-500 focus:border-blue-500"
                                 >
                                 <option value="">Choose the employee</option>

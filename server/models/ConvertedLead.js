@@ -19,11 +19,7 @@ const ConvertedLeadSchema = new mongoose.Schema({
   email: String,
   assigned: { type: String, default: '' },
   service: String,
-status: {
-  type: String,
-  enum: ['pending', 'processing', 'converted', 'completed', 'Follow-up', 'Mature', 'Contacted'],
-  default: 'converted'
-},
+  status: { type: String, enum: ['pending', 'processing', 'converted', 'completed'], default: 'converted' },
   // Dynamic fields
   fields: { type: Object, default: {} },
   // File uploads (store file names/paths)
