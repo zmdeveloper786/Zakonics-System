@@ -465,7 +465,7 @@ const AddServiceDetails = () => {
       submissionData.append('serviceTitle', decodedService);
 
       const token = localStorage.getItem('token');
-      
+
       if (!token) {
         toast.error('You must be logged in to submit services');
         navigate('/login');
@@ -484,18 +484,7 @@ const AddServiceDetails = () => {
 
       if (response.ok) {
         toast.success('Details submitted successfully!');
-
-        // Redirect after invoice is created
-        if (result.invoiceId) {
-          navigate(`/payment/${result.invoiceId}`, {
-            state: {
-              serviceTitle: decodedService,
-              fee: rawFee
-            }
-          });
-        } else {
-          toast.error('Missing invoice ID for redirection');
-        }
+        navigate('/userpanel');
       } else {
         toast.error(result.error || 'Submission failed');
       }
