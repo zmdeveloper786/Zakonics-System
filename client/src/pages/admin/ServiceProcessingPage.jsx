@@ -11,7 +11,6 @@ import ZumarLogo from '../../assets/ZumarLogo.png';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-// Dropdown for assigning employees
 function AssignedToDropdown({ employees, assignedTo, onAssign }) {
   return (
     <select

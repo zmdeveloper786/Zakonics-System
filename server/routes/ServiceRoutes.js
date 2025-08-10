@@ -157,7 +157,6 @@ router.patch('/admin/services/:id/status', verifyJWT, async (req, res) => {
   }
 });
 
-
 // Send invoice and certificate to user (email + dashboard)
 router.post('/admin/services/:id/send-invoice', verifyJWT, sendInvoiceAndCertificate);
 

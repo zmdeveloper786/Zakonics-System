@@ -157,5 +157,19 @@ router.patch('/services/:id/assign', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+router.patch('/services/:id/payment-status', async (req, res) => {
+  try {
+    const { paymentStatus } = req.body;
+    const service = await Service.findByIdAndUpdate(
+      req.params.id,
+      { paymentStatus },
+      { new: true }
+    );
+    if (!service) return res.status(404).json({ error: 'Service not found' });
+    res.json(service);
+  } catch (err) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
 
 export default router;
