@@ -91,7 +91,7 @@ const UserDashboard = () => {
   };
 
   // Calculate due payments
-  const dueServices = userServices.filter(s => s.paymentStatus !== 'submit');
+  const dueServices = (Array.isArray(userServices) ? userServices : []).filter(s => s.paymentStatus !== 'submit');
   const [selectedDueRows, setSelectedDueRows] = useState([]);
   const totalDue = dueServices.reduce((sum, s) => sum + (parseFloat(s.paymentAmount) || 0), 0);
 
@@ -148,7 +148,7 @@ const UserDashboard = () => {
     doc.text('Price', 170, y + 6);
     y += 12;
     // Table rows
-    const selected = dueServices.filter(s => selectedDueRows.includes(s._id || s.serviceTitle));
+  const selected = (Array.isArray(dueServices) ? dueServices : []).filter(s => selectedDueRows.includes(s._id || s.serviceTitle));
     selected.forEach((s, i) => {
       const price = serviceData.prices[s.serviceTitle] || s.paymentAmount || 'N/A';
       doc.setTextColor(40, 40, 40);
@@ -332,7 +332,7 @@ const UserDashboard = () => {
                     <div className="mb-4">
                       <h3 className="font-semibold mb-2">Selected Services & Charges</h3>
                       <ul className="list-disc list-inside text-sm">
-                        {dueServices.filter(s => selectedDueRows.includes(s._id || s.serviceTitle)).map((s, i) => (
+                        {(Array.isArray(dueServices) ? dueServices : []).filter(s => selectedDueRows.includes(s._id || s.serviceTitle)).map((s, i) => (
                           <li key={s._id || i} className="flex justify-between items-center">
                             <span>{s.serviceTitle || 'Service'}</span>
                             <span className="ml-2 text-[#57123f] font-semibold">{s.paymentAmount ? `${s.paymentAmount} PKR` : 'N/A'}</span>
@@ -386,7 +386,7 @@ const UserDashboard = () => {
               <FaRegFileAlt className="text-[#57123f]" /> Your Services Progress
             </h3>
             <div className="flex items-center gap-2 text-sm">
-              <span className="bg-[#57123f] text-white px-3 py-1 rounded-full font-semibold shadow">Services Done: {userServices.filter(s => s.formFields?.status === 'completed').length}</span>
+              <span className="bg-[#57123f] text-white px-3 py-1 rounded-full font-semibold shadow">Services Done: {(Array.isArray(userServices) ? userServices : []).filter(s => s.formFields?.status === 'completed').length}</span>
               <button className="text-[#57123f] underline hover:text-[#57123f] transition" onClick={() => alert('Filters coming soon!')}>Filters</button>
               <select className="border rounded px-2 py-1">
                 <option>Last Month</option>
@@ -397,7 +397,7 @@ const UserDashboard = () => {
 
           {loading ? (
             <div className="text-center py-8 text-gray-400">Loading...</div>
-          ) : userServices.filter(s => (s.formFields?.status || s.status) === 'completed').length === 0 ? (
+          ) : (Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').length === 0 ? (
             <div className="text-center py-8 text-gray-400">No completed services found.</div>
           ) : (
             <div className="overflow-x-auto rounded-xl">
@@ -408,9 +408,9 @@ const UserDashboard = () => {
                       <input
                         type="checkbox"
                         className="accent-[#57123f]"
-                        checked={userServices.filter(s => (s.formFields?.status || s.status) === 'completed').length > 0 && selectedRows.length === userServices.filter(s => (s.formFields?.status || s.status) === 'completed').length}
+                        checked={(Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').length > 0 && selectedRows.length === (Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').length}
                         onChange={handleSelectAll}
-                        indeterminate={selectedRows.length > 0 && selectedRows.length < userServices.filter(s => (s.formFields?.status || s.status) === 'completed').length ? 'true' : undefined}
+                        indeterminate={selectedRows.length > 0 && selectedRows.length < (Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').length ? 'true' : undefined}
                       />
                     </th>
                     <th className="p-3 font-bold uppercase tracking-wider text-xs text-[#57123f] bg-opacity-80 text-left">Services</th>
@@ -421,7 +421,7 @@ const UserDashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {userServices.filter(s => (s.formFields?.status || s.status) === 'completed').map((service, index) => {
+                  {(Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').map((service, index) => {
                     const rowId = service._id || service.serviceTitle;
                     return (
                       <tr

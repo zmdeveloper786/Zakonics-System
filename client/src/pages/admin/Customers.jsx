@@ -67,7 +67,7 @@ const Customers = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.map((user) => (
+              {(Array.isArray(filteredUsers) ? filteredUsers : []).map((user) => (
                 <tr key={user._id} className="border-t hover:bg-gray-50">
                   <td className="py-2 px-4">{user.name}</td>
                   <td className="py-2 px-4">{user.email}</td>

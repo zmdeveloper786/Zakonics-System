@@ -18,7 +18,7 @@ const ActiveClients = () => {
       try {
         // Fetch latest 3 leads from backend
         const res = await axios.get('https://app.zumarlawfirm.com/admin/leads/latest?limit=3');
-        setLatestLeads(res.data);
+        setLatestLeads(Array.isArray(res.data) ? res.data : []);
       } catch (err) {
         setLatestLeads([]);
       } finally {
