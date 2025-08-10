@@ -52,7 +52,7 @@ const UserDashboard = () => {
         withCredentials: true
       });
 
-      setUserServices(response.data);
+  setUserServices(Array.isArray(response.data) ? response.data : []);
     } catch (err) {
       console.error('Failed to fetch user services:', err);
     } finally {
@@ -173,7 +173,7 @@ const UserDashboard = () => {
     doc.text('Account Title: Zumar Law Associate (Smc-Private) Limited', 20, y); y += 6;
     doc.text('Account Number: 0352305145103', 20, y); y += 6;
     doc.text('IBAN: PK88UNIL0109000305145103', 20, y); y += 10;
-    
+
     doc.text('Bank Name: United Bank Limited', 20, y); y += 6;
     doc.text('Account Title: Zumar Law Firm', 20, y); y += 6;
     doc.text('Account Number: 0352330108476', 20, y); y += 6;

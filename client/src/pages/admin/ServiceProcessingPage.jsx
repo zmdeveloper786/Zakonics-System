@@ -33,10 +33,10 @@ function AssignedToDropdown({ employees, assignedTo, onAssign }) {
 // Dynamic status button component
 const statusColors = {
   pending: 'bg-yellow-400 text-black',
-  'in-progress': 'bg-blue-400 text-white',
+  processing: 'bg-blue-400 text-white',
   completed: 'bg-green-500 text-white',
 };
-const statusOrder = ['pending', 'in-progress', 'completed'];
+const statusOrder = ['pending', 'processing', 'completed'];
 
 
 
@@ -77,13 +77,30 @@ const paymentColors = {
 const paymentOrder = ['pending', 'advance', 'full'];
 
 function PaymentStatusButton({ paymentStatus, onClick }) {
+  const [isAnimating, setIsAnimating] = useState(false);
+  const safeStatus = paymentStatus || 'pending';
+  const color = paymentColors[safeStatus] || 'bg-gray-300 text-gray-700';
+  let label = 'Unknown';
+  if (safeStatus === 'full') label = 'Complete';
+  else if (safeStatus === 'advance') label = 'Advance';
+  else label = 'Pending';
+  const handleClick = async (e) => {
+    setIsAnimating(true);
+    try {
+      await onClick(e);
+    } finally {
+      setTimeout(() => setIsAnimating(false), 400);
+    }
+  };
   return (
     <button
       type="button"
-      className={`px-3 py-1 rounded text-xs font-semibold focus:outline-none transition ${paymentColors[paymentStatus]}`}
-      onClick={onClick}
+      className={`px-3 py-1 rounded text-xs font-semibold focus:outline-none transition ${color} ${isAnimating ? 'ring-2 ring-[#57123f] scale-105 shadow-lg' : ''}`}
+      style={{ transition: 'all 0.3s cubic-bezier(.4,2,.6,1)' }}
+      onClick={handleClick}
+      disabled={isAnimating}
     >
-      {paymentStatus === 'full' ? 'Completely Paid' : paymentStatus === 'advance' ? 'Advance Payment' : 'Pending'}
+      {label}
     </button>
   );
 }
