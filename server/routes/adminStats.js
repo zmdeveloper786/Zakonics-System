@@ -17,17 +17,6 @@ router.get('/leads/count', async (req, res) => {
   }
 });
 
-// router.get('/services/count', async (req, res) => {
-//   try {
-//     const mainCompleted = await Service.countDocuments({ status: 'completed' });
-//     const manualCompleted = await ManualService.countDocuments({ status: 'completed' });
-//     const convertedCompleted = await ConvertedLead.countDocuments({ status: 'completed' });
-//     const count = mainCompleted + manualCompleted + convertedCompleted;
-//     res.json({ count });
-//   } catch (err) {
-//     res.status(500).json({ error: 'Failed to fetch services count' });
-//   }
-// });
 
 router.get('/services/pending/count', async (req, res) => {
   try {
@@ -92,11 +81,6 @@ router.get('/services/completed/paymentsum', async (req, res) => {
   }
 });
 
-// GET /admin/services/booked/count
-// Returns the total number of services (all records) from:
-// 1. Service.js
-// 2. ManualServiceSubmission.js
-// 3. ConvertedLead.js
 router.get('/services/count', async (req, res) => {
   try {
     const mainTotal = await Service.countDocuments();
@@ -156,10 +140,8 @@ router.get('/stats', async (req, res) => {
     const pendingServices = await Service.find({ ...serviceQuery, status: 'pending' });
     const pendingManual = await ManualService.find({ ...serviceQuery, status: 'pending' });
     const pendingConverted = await ConvertedLead.find({ ...serviceQuery, status: 'pending' });
-    // Total leads (all models)
-    const totalLeads = await Service.countDocuments(serviceQuery)
-      + await ManualService.countDocuments(serviceQuery)
-      + await ConvertedLead.countDocuments(serviceQuery);
+  // Total leads: count all Lead documents (not filtered by date/status)
+  const totalLeads = await Lead.countDocuments();
     // Payment sum for completed
     // Helper to get price from servicePrices
     const getPrice = (s, type) => {
