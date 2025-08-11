@@ -1,9 +1,9 @@
 import express from 'express';
 import Lead from '../models/Lead.js';
-// import Service from '../models/Service.js';
 import Service from '../models/Service.js';
 import ManualService from '../models/ManualServiceSubmission.js';
 import ConvertedLead from '../models/ConvertedLead.js';
+import Payroll from '../models/Payroll.js';
 import { servicePrices } from '../data/servicePrices.js';
 const router = express.Router();
 
@@ -161,60 +161,65 @@ router.get('/stats', async (req, res) => {
       + await ManualService.countDocuments(serviceQuery)
       + await ConvertedLead.countDocuments(serviceQuery);
     // Payment sum for completed
-      // Helper to get price from servicePrices
-      const getPrice = (s, type) => {
-        if (s.paymentAmount && !isNaN(parseFloat(s.paymentAmount))) {
-          return parseFloat(s.paymentAmount);
-        }
-        let key = '';
-        if (type === 'main') {
-          key = s.serviceTitle;
-        } else if (type === 'manual') {
-          key = s.serviceType;
-        } else if (type === 'converted') {
-          key = s.service;
-        }
-        if (key && servicePrices[key]) {
-          return servicePrices[key];
-        }
-        return 0;
-      };
+    // Helper to get price from servicePrices
+    const getPrice = (s, type) => {
+      if (s.paymentAmount && !isNaN(parseFloat(s.paymentAmount))) {
+        return parseFloat(s.paymentAmount);
+      }
+      let key = '';
+      if (type === 'main') {
+        key = s.serviceTitle;
+      } else if (type === 'manual') {
+        key = s.serviceType;
+      } else if (type === 'converted') {
+        key = s.service;
+      }
+      if (key && servicePrices[key]) {
+        return servicePrices[key];
+      }
+      return 0;
+    };
 
-      // Calculate prices for completed services
-      const completedServicePrices = completedServices.map(s => ({
-        id: s._id,
-        type: 'main',
-        title: s.serviceTitle,
-        price: getPrice(s, 'main')
-      }));
-      const completedManualPrices = completedManual.map(s => ({
-        id: s._id,
-        type: 'manual',
-        title: s.serviceType,
-        price: getPrice(s, 'manual')
-      }));
-      const completedConvertedPrices = completedConverted.map(s => ({
-        id: s._id,
-        type: 'converted',
-        title: s.service,
-        price: getPrice(s, 'converted')
-      }));
+    // Calculate prices for completed services
+    const completedServicePrices = completedServices.map(s => ({
+      id: s._id,
+      type: 'main',
+      title: s.serviceTitle,
+      price: getPrice(s, 'main')
+    }));
+    const completedManualPrices = completedManual.map(s => ({
+      id: s._id,
+      type: 'manual',
+      title: s.serviceType,
+      price: getPrice(s, 'manual')
+    }));
+    const completedConvertedPrices = completedConverted.map(s => ({
+      id: s._id,
+      type: 'converted',
+      title: s.service,
+      price: getPrice(s, 'converted')
+    }));
 
-      const allCompletedPrices = [
-        ...completedServicePrices,
-        ...completedManualPrices,
-        ...completedConvertedPrices
-      ];
+    const allCompletedPrices = [
+      ...completedServicePrices,
+      ...completedManualPrices,
+      ...completedConvertedPrices
+    ];
 
-      const paymentSum = allCompletedPrices.reduce((acc, s) => acc + s.price, 0);
+    const paymentSum = allCompletedPrices.reduce((acc, s) => acc + s.price, 0);
 
-      res.json([
-        { title: 'Completed Services', value: completedServices.length + completedManual.length + completedConverted.length },
-        { title: 'Pending Services', value: pendingServices.length + pendingManual.length + pendingConverted.length },
-        { title: 'Total Leads', value: totalLeads },
-        { title: 'Payment of Completed', value: paymentSum },
-        { title: 'Completed Service Prices', value: allCompletedPrices }
-      ]);
+    // Calculate total salary paid from all payrolls
+    const allPayrolls = await Payroll.find({});
+    const salaryPaid = allPayrolls.reduce((sum, p) => sum + (Number(p.salary) || 0), 0);
+
+    res.json([
+      { title: 'Completed Services', value: completedServices.length + completedManual.length + completedConverted.length },
+      { title: 'Pending Services', value: pendingServices.length + pendingManual.length + pendingConverted.length },
+      { title: 'Total Leads', value: totalLeads },
+      { title: 'Payment of Completed', value: paymentSum },
+      { title: 'Completed Service Prices', value: allCompletedPrices },
+      { title: 'Salary Paid', value: salaryPaid }
+    ]);
   } catch (err) {
     console.error('Stats error:', err);
     res.status(500).json({ error: 'Failed to fetch stats.' });
