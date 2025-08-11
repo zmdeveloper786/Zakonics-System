@@ -110,6 +110,7 @@ const Sidebar = () => {
             children: [
                 { name: 'Converted Service', path: '/admin/services/converted', icon: <FaExchangeAlt /> },
                 { name: 'Manual Service', path: '/admin/services/manual', icon: <FaFileImport /> },
+                { name: 'Add Manual Service', path: '/add-service', icon: <FaPlus /> },
             ]
         },
         {
