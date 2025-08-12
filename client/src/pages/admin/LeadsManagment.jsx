@@ -43,7 +43,7 @@ export default function LeadsManagment() {
 
   const fetchLeads = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/leads");
+      const res = await axios.get("https://app.zumarlawfirm.com/leads");
       setLeads(res.data);
     } catch (err) {
       setLeads([]);
@@ -88,7 +88,7 @@ export default function LeadsManagment() {
 
   const handleEditSave = async () => {
     try {
-      await axios.put(`http://localhost:5000/leads/${editModal.lead._id}`, editModal.lead);
+      await axios.put(`https://app.zumarlawfirm.com/leads/${editModal.lead._id}`, editModal.lead);
       setLeads(prev => prev.map(l => l._id === editModal.lead._id ? { ...editModal.lead } : l));
       setEditModal({ open: false, lead: null });
     } catch (err) {
@@ -99,7 +99,7 @@ export default function LeadsManagment() {
   const handleDelete = async (leadId) => {
     if (window.confirm("Are you sure you want to delete this lead?")) {
       try {
-        await axios.delete(`http://localhost:5000/leads/${leadId}`);
+        await axios.delete(`https://app.zumarlawfirm.com/leads/${leadId}`);
         setLeads(prev => prev.filter(l => l._id !== leadId));
       } catch (err) {
         alert("Failed to delete lead.");
@@ -205,7 +205,7 @@ export default function LeadsManagment() {
                       onChange={async e => {
                         const value = e.target.value;
                         try {
-                          await axios.put(`http://localhost:5000/leads/${lead._id}/status`, { status: value });
+                          await axios.put(`https://app.zumarlawfirm.com/leads/${lead._id}/status`, { status: value });
                         } catch (err) {
                           // Optionally show error to user
                         }
