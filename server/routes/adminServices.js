@@ -1,7 +1,7 @@
 
 import express from 'express';
 import { verifyJWT } from '../middleware/authMiddleware.js';
-import Service from '../models/Service.js';
+import ServiceDetail from '../models/Service.js';
 import multer from 'multer';
 import path from 'path';
 const router = express.Router();

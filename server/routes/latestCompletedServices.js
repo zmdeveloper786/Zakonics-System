@@ -1,7 +1,7 @@
 // Route: GET /admin/latest-completed-services?limit=4
 // Returns latest completed services (from all service models)
 import express from 'express';
-import Service from '../models/Service.js';
+import ServiceDetail from '../models/Service.js';
 import ManualServiceSubmission from '../models/ManualServiceSubmission.js';
 import ConvertedLead from '../models/ConvertedLead.js';
 import PersonalDetail from '../models/PersonalDetail.js';

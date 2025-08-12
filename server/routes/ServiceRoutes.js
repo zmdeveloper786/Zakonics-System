@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import path from 'path';
 import PersonalDetail from '../models/PersonalDetail.js';
-import Service from '../models/Service.js';
+import ServiceDetail from '../models/Service.js';
 import { verifyJWT } from '../middleware/authMiddleware.js';
 import { sendInvoiceAndCertificate } from '../controllers/serviceController.js';
 

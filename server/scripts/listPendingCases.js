@@ -1,6 +1,6 @@
 // scripts/listPendingCases.js
 import mongoose from 'mongoose';
-import Service from '../models/Service.js';
+import ServiceDetail from '../models/Service.js';
 import ManualService from '../models/ManualServiceSubmission.js';
 import ConvertedLead from '../models/ConvertedLead.js';
 

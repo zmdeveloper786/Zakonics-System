@@ -1,5 +1,5 @@
 import express from 'express';
-import Service from '../models/Service.js';
+import ServiceDetail from '../models/Service.js';
 import ManualServiceSubmission from '../models/ManualServiceSubmission.js';
 import ConvertedLead from '../models/ConvertedLead.js';
 
