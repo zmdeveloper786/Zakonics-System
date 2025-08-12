@@ -1,6 +1,6 @@
 import express from 'express';
 import Lead from '../models/Lead.js';
-import ServiceDetail from '../models/Service.js';
+import Service from '../models/Service.js';
 import ManualService from '../models/ManualServiceSubmission.js';
 import ConvertedLead from '../models/ConvertedLead.js';
 import Payroll from '../models/Payroll.js';
