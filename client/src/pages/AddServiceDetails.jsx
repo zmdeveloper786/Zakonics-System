@@ -569,7 +569,7 @@ const AddServiceDetails = () => {
           />
           <p className="font-semibold mb-2">Send your details on WhatsApp</p>
           <a
-            href={`https://wa.me/923254992099?text=I want to register for: ${decodedService}`}
+            href={`https://wa.me/+923035985574?text=I want to register for: ${decodedService}`}
             target="_blank"
             rel="noopener noreferrer"
             className="border px-5 py-2 rounded hover:bg-gray-100 inline-block"

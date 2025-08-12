@@ -193,7 +193,7 @@ const UserDashboard = () => {
     y += 6;
     doc.setFontSize(11);
     doc.setTextColor(40, 40, 40);
-    doc.text('WhatsApp: +92 325 4992099', 20, y); y += 10;
+    doc.text('WhatsApp: +92 303 5988574', 20, y); y += 10;
 
     // Footer with colored background
     doc.setFillColor(87, 18, 63);
@@ -201,7 +201,7 @@ const UserDashboard = () => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.text('Thank you for choosing Zumar Law Firm.', 105, 287, { align: 'center' });
-    doc.text('For queries, contact: +92 325 4992099', 105, 293, { align: 'center' });
+    doc.text('For queries, contact: +92 303 5988574', 105, 293, { align: 'center' });
 
     doc.save('PaymentSlip.pdf');
   };
