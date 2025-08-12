@@ -1,6 +1,6 @@
 import express from 'express';
 import { verifyJWT } from '../middleware/authMiddleware.js';
-import ServiceDetail from '../models/Service.js';
+import Service from '../models/Service.js';
 import PersonalDetail from '../models/PersonalDetail.js';
 
 const router = express.Router();

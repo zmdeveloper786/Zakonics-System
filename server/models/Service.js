@@ -29,4 +29,4 @@ const ServiceDetailSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model('ServiceDetail', ServiceDetailSchema);
+export default mongoose.model('Service', ServiceDetailSchema);
