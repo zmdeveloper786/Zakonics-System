@@ -27,6 +27,8 @@ export default function Payroll() {
   const [editData, setEditData] = useState(null);
   const [selectedEmp, setSelectedEmp] = useState(null);
   const [autoPayLoading, setAutoPayLoading] = useState(false);
+  const [showPayModal, setShowPayModal] = useState(false);
+  const [payMethod, setPayMethod] = useState('Cash');
   const perPage = 5;
   const navigate = useNavigate();
 
@@ -34,9 +36,8 @@ export default function Payroll() {
     const fetchPayrolls = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("https://app.zumarlawfirm.com/payrolls");
-        // Ensure always array
-        setPayrolls(Array.isArray(res.data) ? res.data : []);
+        const res = await axios.get("http://localhost:5000/payrolls");
+        setPayrolls(res.data);
       } catch (err) {
         setPayrolls([]);
       } finally {
@@ -50,9 +51,8 @@ export default function Payroll() {
     // Fetch employees for Quick Salary Pay
     const fetchEmployees = async () => {
       try {
-        const res = await axios.get("https://app.zumarlawfirm.com/admin/roles", { withCredentials: true });
-        // Ensure always array
-        setEmployeeList(Array.isArray(res.data) ? res.data : []);
+        const res = await axios.get("http://localhost:5000/admin/roles", { withCredentials: true });
+        setEmployeeList(res.data);
       } catch (err) {
         setEmployeeList([]);
       }
@@ -82,7 +82,7 @@ export default function Payroll() {
     if (!window.confirm("Are you sure you want to delete this payroll?")) return;
     try {
       setLoading(true);
-      await axios.delete(`https://app.zumarlawfirm.com/payrolls/${id}`);
+      await axios.delete(`http://localhost:5000/payrolls/${id}`);
       setPayrolls((prev) => prev.filter((p) => p._id !== id));
       toast.success("Payroll deleted successfully!");
     } catch (err) {
@@ -107,7 +107,7 @@ export default function Payroll() {
     e.preventDefault();
     try {
       setLoading(true);
-      await axios.put(`https://app.zumarlawfirm.com/payrolls/${editData._id}`, editData);
+      await axios.put(`http://localhost:5000/payrolls/${editData._id}`, editData);
       setPayrolls((prev) => prev.map((p) => (p._id === editData._id ? editData : p)));
       toast.success("Payroll updated successfully!");
       setEditModal(false);
@@ -130,6 +130,43 @@ export default function Payroll() {
     }
   };
 
+  // Handle Auto Pay for selected employee
+  const handleAutoPay = () => {
+    if (!selectedEmp) {
+      toast.error('Please select an employee to pay.');
+      return;
+    }
+    setShowPayModal(true);
+  };
+
+  const confirmAutoPay = async () => {
+    if (!selectedEmp) return;
+    setAutoPayLoading(true);
+    try {
+      const today = new Date();
+      const monthStr = today.toLocaleString('default', { month: 'long', year: 'numeric' });
+      const paymentDate = today.toISOString().slice(0, 10);
+      const res = await axios.post('http://localhost:5000/payrolls', {
+        employee: selectedEmp.name,
+        salary: selectedEmp.salary,
+        branch: selectedEmp.branch,
+        paymentDate,
+        status: 'Paid',
+        paymentMethod: payMethod,
+        paidBy: 'arslan',
+        payrollMonth: monthStr
+      });
+      setPayrolls(prev => [res.data, ...prev]);
+      toast.success(`Auto Pay successful for ${selectedEmp.name}!`);
+      setShowPayModal(false);
+      setSelectedEmp(null);
+    } catch (err) {
+      toast.error('Auto Pay failed.');
+    } finally {
+      setAutoPayLoading(false);
+    }
+  };
+
   return (
     <div className="w-auto space-y-5 py-6 bg-white">
       <div className="text-sm text-gray-500 mb-2 px-2">
@@ -148,47 +185,40 @@ export default function Payroll() {
             Add New Salary
           </Link>
           <button
-            className={`bg-[#57123f] hover:bg-[#7a1a59] text-white px-4 py-2 rounded-full flex items-center gap-2 ${loading ? 'opacity-60 cursor-not-allowed' : ''}`}
-            disabled={loading}
-            onClick={async () => {
-              if (!employeeList.length) {
-                toast.error('No employees found for Auto Pay');
-                return;
-              }
-              if (!window.confirm('Are you sure you want to auto pay all employees for this month?')) return;
-              setLoading(true);
-              try {
-                const today = new Date();
-                const monthStr = today.toLocaleString('default', { month: 'long', year: 'numeric' });
-                const paymentDate = today.toISOString().slice(0, 10);
-                const results = await Promise.all(
-                  employeeList.map(emp =>
-                    axios.post('https://app.zumarlawfirm.com/payrolls', {
-                      employee: emp.name,
-                      salary: emp.salary,
-                      branch: emp.branch,
-                      paymentDate,
-                      status: 'Paid',
-                      paymentMethod: 'Cash',
-                      paidBy: 'arslan',
-                      payrollMonth: monthStr
-                    })
-                  )
-                );
-                setPayrolls(prev => [
-                  ...results.map(r => r.data),
-                  ...prev
-                ]);
-                toast.success('Auto Pay successful for all employees!');
-              } catch (err) {
-                toast.error('Auto Pay failed for one or more employees.');
-              } finally {
-                setLoading(false);
-              }
-            }}
+            className={`bg-[#57123f] hover:bg-[#7a1a59] text-white px-4 py-2 rounded-full flex items-center gap-2 ${autoPayLoading ? 'opacity-60 cursor-not-allowed' : ''}`}
+            disabled={autoPayLoading}
+            onClick={handleAutoPay}
           >
             Auto Pay
           </button>
+      {/* Payment Method Modal */}
+      {showPayModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-[320px]">
+            <h3 className="text-lg font-semibold mb-4">Select Payment Method</h3>
+            <div className="flex flex-col gap-3 mb-4">
+              <label className="flex items-center gap-2">
+                <input type="radio" name="payMethod" value="Cash" checked={payMethod === 'Cash'} onChange={() => setPayMethod('Cash')} />
+                Cash
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" name="payMethod" value="Bank" checked={payMethod === 'Bank'} onChange={() => setPayMethod('Bank')} />
+                Bank
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="radio" name="payMethod" value="Cheque" checked={payMethod === 'Cheque'} onChange={() => setPayMethod('Cheque')} />
+                Cheque
+              </label>
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button className="px-4 py-2 rounded bg-gray-200" onClick={() => setShowPayModal(false)} disabled={autoPayLoading}>Cancel</button>
+              <button className="px-4 py-2 rounded bg-[#57123f] text-white" onClick={confirmAutoPay} disabled={autoPayLoading}>
+                {autoPayLoading ? 'Paying...' : 'Confirm & Pay'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
         </div>
       </div>
 

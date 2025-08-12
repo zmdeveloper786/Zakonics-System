@@ -1,3 +1,4 @@
+
 import express from 'express';
 import { verifyJWT } from '../middleware/authMiddleware.js';
 import Service from '../models/Service.js';
@@ -21,11 +22,8 @@ router.post('/services/:id/certificate', upload.single('certificate'), async (re
     const service = await Service.findById(req.params.id);
     if (!service) return res.status(404).json({ error: 'Service not found' });
 
-    if (req.query.pending === 'true') {
-      service.certificatePending = req.file.filename;
-    } else {
-      service.certificate = req.file.filename;
-    }
+   service.certificate = req.file.filename;
+
     await service.save();
 
     res.json({ message: 'Certificate uploaded', file: req.file.filename });
@@ -42,6 +40,9 @@ router.post('/services/:id/send-invoice', async (req, res) => {
   try {
     const service = await Service.findById(req.params.id).populate('personalId');
     if (!service) return res.status(404).json({ error: 'Service not found' });
+    if (!service.personalId || !service.personalId.email) {
+      return res.status(400).json({ error: 'User email not found. Please ensure the user has a valid email in their profile.' });
+    }
 
     // Move pending certificate to main field
     if (service.certificatePending) {
@@ -49,7 +50,6 @@ router.post('/services/:id/send-invoice', async (req, res) => {
       service.certificatePending = undefined;
       await service.save();
     }
-
 
     // Collect files: certificate, images, documents
     const files = [];
@@ -91,12 +91,20 @@ router.post('/services/:id/send-invoice', async (req, res) => {
     await new Promise((resolve) => writeStream.on('finish', resolve));
     files.push({ path: invoiceFilePath, name: invoiceFileName });
 
-    // Prepare attachments for email
-    const attachments = files.map(f => ({
-      filename: f.name,
-      path: f.path
-    }));
 
+    // Prepare attachments for email, skip missing files
+    const attachments = files
+      .filter(f => {
+        try {
+          return fs.existsSync(f.path);
+        } catch {
+          return false;
+        }
+      })
+      .map(f => ({
+        filename: f.name,
+        path: f.path
+      }));
 
     // Send email to user (credentials from env)
     const transporter = nodemailer.createTransport({
@@ -118,7 +126,7 @@ router.post('/services/:id/send-invoice', async (req, res) => {
     res.json({ message: 'Invoice, certificate, and documents sent to user and made visible on dashboard.' });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: err.message || 'Server error' });
   }
 });
 
@@ -157,6 +165,7 @@ router.patch('/services/:id/assign', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+// PATCH /admin/services/:id/payment-status - update payment status
 router.patch('/services/:id/payment-status', async (req, res) => {
   try {
     const { paymentStatus } = req.body;

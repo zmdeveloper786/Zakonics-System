@@ -30,8 +30,7 @@ const Customers = () => {
       (user) =>
         user.name?.toLowerCase().includes(term) ||
         user.email?.toLowerCase().includes(term) ||
-        user.phone?.toLowerCase().includes(term) ||
-        user.CNIC?.toLowerCase().includes(term)
+        user.phone?.toLowerCase().includes(term)
     );
     setFilteredUsers(filtered);
   }, [searchTerm, users]);
@@ -43,7 +42,7 @@ const Customers = () => {
       {/* Search Bar */}
       <input
         type="text"
-        placeholder="Search by name, email, phone or CNIC..."
+        placeholder="Search by name, email, or phone..."
         className="w-full max-w-md px-4 py-2 mb-4 border rounded shadow-sm focus:outline-none focus:ring focus:border-blue-300"
         value={searchTerm}
         onChange={(e) => setSearchTerm(e.target.value)}
@@ -61,7 +60,6 @@ const Customers = () => {
                 <th className="py-2 px-4 text-left">Name</th>
                 <th className="py-2 px-4 text-left">Email</th>
                 <th className="py-2 px-4 text-left">Phone</th>
-                <th className="py-2 px-4 text-left">CNIC</th>
                 <th className="py-2 px-4 text-left">Date Joined</th>
                 <th className="py-2 px-4 text-left">Status</th>
               </tr>
@@ -72,7 +70,6 @@ const Customers = () => {
                   <td className="py-2 px-4">{user.name}</td>
                   <td className="py-2 px-4">{user.email}</td>
                   <td className="py-2 px-4">{user.phone}</td>
-                  <td className="py-2 px-4">{user.CNIC}</td>
                   <td className="py-2 px-4">
                     {new Date(user.createdAt).toLocaleDateString()}
                   </td>

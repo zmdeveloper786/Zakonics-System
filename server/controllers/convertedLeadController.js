@@ -1,4 +1,5 @@
 import ConvertedLead from '../models/ConvertedLead.js';
+import Lead from '../models/Lead.js';
 import path from 'path';
 import fs from 'fs';
 import nodemailer from 'nodemailer';
@@ -32,41 +33,27 @@ function extractFilesFromReq(req) {
 
 export const createConvertedLead = async (req, res) => {
   try {
-    console.log('FILES:', req.files);
-    console.log('BODY:', req.body);
-
-    const { name, cnic, phone, email, assigned, service, status, ...rest } = req.body;
+    // Basic fields
+    const { name, phone, email, assigned, service, status, originalLeadId, ...rest } = req.body;
+    // Dynamic fields (non-file)
     const fields = { ...rest };
-
-    // Check multer structure — log req.files and format if needed
-    const files = {};
-    if (req.files) {
-      req.files.forEach(file => {
-        if (!files[file.fieldname]) files[file.fieldname] = [];
-        files[file.fieldname].push(file.filename);
-      });
-    }
-
+    // File fields
+    const files = extractFilesFromReq(req);
     const lead = new ConvertedLead({
-      name,
-      cnic,
-      phone,
-      email,
-      assigned,
-      service,
-      status,
+      name, phone, email, assigned, service, status,
       fields,
       files,
     });
-
     await lead.save();
+    // Remove the original lead from Lead model if originalLeadId is provided
+    if (originalLeadId) {
+      await Lead.findByIdAndDelete(originalLeadId);
+    }
     res.status(201).json({ success: true, lead });
   } catch (err) {
-    console.error('❌ CREATE ERROR:', err);
     res.status(500).json({ success: false, error: err.message });
   }
 };
-
 
 export const getAllConvertedLeads = async (req, res) => {
   try {
@@ -91,7 +78,10 @@ export const getConvertedLead = async (req, res) => {
 export const sendInvoice = async (req, res) => {
   try {
     const lead = await ConvertedLead.findById(req.params.id);
-    if (!lead) return res.status(404).json({ success: false, message: 'Lead not found' });
+    if (!lead) {
+      console.error('ConvertedLead not found for sendInvoice. Requested ID:', req.params.id);
+      return res.status(404).json({ success: false, message: 'Converted client not found. Please refresh the page and try again.' });
+    }
     // Use email from request body if provided, else from lead
     const recipientEmail = req.body.email || lead.email;
     if (!recipientEmail) {
@@ -105,19 +95,50 @@ export const sendInvoice = async (req, res) => {
       const pdfData = Buffer.concat(buffers);
       // Prepare download links for files
       let fileLinks = [];
+      let attachments = [{ filename: 'invoice.pdf', content: pdfData }];
+      const uploadsPath = path.join(process.cwd(), 'uploads');
       if (lead.files) {
         const base = `${req.protocol}://${req.get('host')}/uploads/`;
         Object.values(lead.files).forEach(f => {
           if (Array.isArray(f)) {
-            f.forEach(file => fileLinks.push(base + encodeURIComponent(file)));
+            f.forEach(file => {
+              fileLinks.push(base + encodeURIComponent(file));
+              // Attach file if exists
+              const filePath = path.join(uploadsPath, file);
+              if (fs.existsSync(filePath)) {
+                attachments.push({ filename: file, path: filePath });
+              }
+            });
           } else if (typeof f === 'string') {
             fileLinks.push(base + encodeURIComponent(f));
+            const filePath = path.join(uploadsPath, f);
+            if (fs.existsSync(filePath)) {
+              attachments.push({ filename: f, path: filePath });
+            }
+          }
+        });
+      }
+      if (lead.certificate) {
+        const certPath = path.join(uploadsPath, lead.certificate);
+        if (fs.existsSync(certPath)) {
+          attachments.push({ filename: lead.certificate, path: certPath });
+          fileLinks.push(`${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(lead.certificate)}`);
+        }
+      }
+      // Attach docs if present
+      if (Array.isArray(lead.docs)) {
+        lead.docs.forEach(docMeta => {
+          if (docMeta.filename) {
+            const docPath = path.join(uploadsPath, docMeta.filename);
+            if (fs.existsSync(docPath)) {
+              attachments.push({ filename: docMeta.originalName || docMeta.filename, path: docPath });
+              fileLinks.push(`${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(docMeta.filename)}`);
+            }
           }
         });
       }
       // Send email
       const transporter = nodemailer.createTransport({
-        // Configure as per your SMTP
         service: 'gmail',
         auth: {
           user: process.env.EMAIL_USER,
@@ -128,16 +149,15 @@ export const sendInvoice = async (req, res) => {
         from: process.env.EMAIL_USER,
         to: recipientEmail,
         subject: `Your Invoice for ${lead.service || 'Service'}`,
-        text: `Dear ${lead.name || 'User'},\n\nPlease find attached your invoice.\n\nDownload your files here:\n${fileLinks.join('\n')}`,
-        attachments: [{ filename: 'invoice.pdf', content: pdfData }],
+        text: `Dear ${lead.name || 'User'},\n\nPlease find attached your invoice and all related documents.\n\nDownload your files here:\n${fileLinks.join('\n')}`,
+        attachments,
       });
-      res.json({ success: true, message: 'Invoice sent' });
+      res.json({ success: true, message: 'Invoice and documents sent' });
     });
     // Compose PDF content
     doc.fontSize(18).text('Invoice', { align: 'center' });
     doc.moveDown();
     doc.fontSize(12).text(`Name: ${lead.name || ''}`);
-    doc.text(`CNIC: ${lead.cnic || ''}`);
     doc.text(`Phone: ${lead.phone || ''}`);
     doc.text(`Email: ${lead.email || ''}`);
     doc.text(`Service: ${lead.service || ''}`);
@@ -146,7 +166,8 @@ export const sendInvoice = async (req, res) => {
     doc.text('Thank you for using our service.');
     doc.end();
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+  console.error('Error sending invoice:', err);
+  res.status(500).json({ success: false, message: err.message });
   }
 };
 

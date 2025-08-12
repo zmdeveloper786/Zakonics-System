@@ -43,7 +43,7 @@ export default function LeadsManagment() {
 
   const fetchLeads = async () => {
     try {
-      const res = await axios.get("https://app.zumarlawfirm.com/leads");
+      const res = await axios.get("http://localhost:5000/leads");
       setLeads(res.data);
     } catch (err) {
       setLeads([]);
@@ -55,7 +55,6 @@ export default function LeadsManagment() {
     const matchesSearch =
       (lead.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         lead.phone?.includes(searchTerm) ||
-        lead.cnic?.includes(searchTerm) ||
         lead.email?.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesDate = filterDate
@@ -89,7 +88,7 @@ export default function LeadsManagment() {
 
   const handleEditSave = async () => {
     try {
-      await axios.put(`https://app.zumarlawfirm.com/leads/${editModal.lead._id}`, editModal.lead);
+      await axios.put(`http://localhost:5000/leads/${editModal.lead._id}`, editModal.lead);
       setLeads(prev => prev.map(l => l._id === editModal.lead._id ? { ...editModal.lead } : l));
       setEditModal({ open: false, lead: null });
     } catch (err) {
@@ -100,7 +99,7 @@ export default function LeadsManagment() {
   const handleDelete = async (leadId) => {
     if (window.confirm("Are you sure you want to delete this lead?")) {
       try {
-        await axios.delete(`https://app.zumarlawfirm.com/leads/${leadId}`);
+        await axios.delete(`http://localhost:5000/leads/${leadId}`);
         setLeads(prev => prev.filter(l => l._id !== leadId));
       } catch (err) {
         alert("Failed to delete lead.");
@@ -177,7 +176,7 @@ export default function LeadsManagment() {
           <thead className="bg-gray-100 text-gray-600">
             <tr>
               <th className="p-2"><input type="checkbox" /></th>
-              <th className="p-2">Name & CNIC</th>
+              <th className="p-2">Name & Email</th>
               <th className="p-2">Phone & Registered</th>
               <th className="p-2">Service Interested</th>
               <th className="p-2">Status</th>
@@ -193,7 +192,7 @@ export default function LeadsManagment() {
                   <td className="p-2"><input type="checkbox" /></td>
                   <td className="p-2">
                     <div className="font-medium" title={lead.name}>{lead.name}</div>
-                    <div className="text-gray-500 text-xs" title={lead.cnic}>{lead.cnic}</div>
+                    <div className="text-gray-500 text-xs" title={lead.email}>{lead.email}</div>
                   </td>
                   <td className="p-2">
                     <div className="text-xs text-gray-700">Phone: {lead.phone}</div>
@@ -206,7 +205,7 @@ export default function LeadsManagment() {
                       onChange={async e => {
                         const value = e.target.value;
                         try {
-                          await axios.put(`https://app.zumarlawfirm.com/leads/${lead._id}/status`, { status: value });
+                          await axios.put(`http://localhost:5000/leads/${lead._id}/status`, { status: value });
                         } catch (err) {
                           // Optionally show error to user
                         }
@@ -280,12 +279,12 @@ export default function LeadsManagment() {
               placeholder="Name"
             />
             <input
-              type="text"
-              name="cnic"
-              value={editModal.lead.cnic || ''}
+              type="email"
+              name="email"
+              value={editModal.lead.email || ''}
               onChange={handleEditChange}
               className="border rounded px-3 py-2 w-full"
-              placeholder="CNIC"
+              placeholder="Email"
             />
             <input
               type="text"

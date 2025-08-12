@@ -14,12 +14,11 @@ const FileMetaSchema = new mongoose.Schema({
 const ConvertedLeadSchema = new mongoose.Schema({
   // Basic lead info
   name: String,
-  cnic: String,
   phone: String,
   email: String,
   assigned: { type: String, default: '' },
   service: String,
-  status: { type: String, enum: ['pending', 'processing', 'converted', 'completed'], default: 'converted' },
+  status: { type: String, enum: ['pending', 'processing', 'converted', 'completed', 'Follow-up', 'Mature', 'Contacted'], default: 'converted' },
   // Dynamic fields
   fields: { type: Object, default: {} },
   // File uploads (store file names/paths)

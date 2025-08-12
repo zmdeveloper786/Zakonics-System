@@ -53,7 +53,6 @@ const ImportLeads = () => {
             return {
                 name: normalized["lead name"] || normalized["name"] || "",
                 email: normalized["email"] || "",
-                cnic: normalized["cnic"] || "",
                 createdAt: normalized["registered on"] ? new Date(normalized["registered on"]) : (normalized["createdat"] ? new Date(normalized["createdat"]) : new Date()),
                 phone: normalized["phone no"] || normalized["phone"] || "",
                 status: normalized["status"] || "",
@@ -94,7 +93,7 @@ const ImportLeads = () => {
     const handleImport = async () => {
         if (!leads.length) return toast.error("No leads to import");
         try {
-            await axios.post("https://app.zumarlawfirm.com/leads/import", { leads });
+            await axios.post("http://localhost:5000/leads/import", { leads });
             toast.success("Leads imported successfully!");
             setLeads([]);
             setFilename("");
@@ -166,7 +165,7 @@ const ImportLeads = () => {
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
-                                    xmlns="https://www.w3.org/2000/svg"
+                                    xmlns="http://www.w3.org/2000/svg"
                                 >
                                     <path
                                         strokeLinecap="round"

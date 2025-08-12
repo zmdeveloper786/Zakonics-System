@@ -12,7 +12,7 @@ const AddLeads = () => {
         // Fetch employees from backend Roles model
        const fetchEmployees = async () => {
       try {
-        const res = await axios.get('https://app.zumarlawfirm.com/admin/roles');
+        const res = await axios.get('http://localhost:5000/admin/roles');
         const employeesArr = Array.isArray(res.data)
           ? res.data.filter(emp => typeof emp.name === 'string' && emp.name.trim() !== '')
           : [];
@@ -27,6 +27,7 @@ const AddLeads = () => {
     const onSubmit = async (data) => {
         const lead = {
             name: data.name,
+            email: data.email,
             phone: `${data.countryCode}${data.phoneNumber}`,
             status: data.leadStatus || 'New Lead',
             date: new Date().toISOString().slice(0, 10),
@@ -38,7 +39,7 @@ const AddLeads = () => {
             remarks: data.remarks,
         };
         try {
-            await axios.post('https://app.zumarlawfirm.com/leads', lead);
+            await axios.post('http://localhost:5000/leads', lead);
             toast.success('Lead added successfully!');
             reset();
         } catch (err) {
@@ -136,6 +137,16 @@ const AddLeads = () => {
                                 placeholder="Enter name"
                             />
                             {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name.message}</p>}
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                            <input
+                                {...register("email", { pattern: { value: /^[^@\s]+@[^@\s]+\.[^@\s]+$/, message: "Invalid email address" } })}
+                                type="email"
+                                className="w-full px-4 py-2 border rounded-md focus:ring-blue-500 focus:border-blue-500"
+                                placeholder="Enter email"
+                            />
+                            {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
                         </div>
                     </div>
 

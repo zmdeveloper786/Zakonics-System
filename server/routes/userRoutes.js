@@ -13,7 +13,6 @@ router.get('/admin/customers', async (req, res) => {
       name: `${user.firstName} ${user.lastName}`,
       email: user.email,
       phone: user.phoneNumber || 'N/A',
-      CNIC: user.CNIC || 'N/A',
       createdAt: user.createdAt,
       services: [], // default
       isActive: true // default

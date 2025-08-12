@@ -70,6 +70,10 @@ const FollowupLeads = () => {
     Object.entries(convertModal.lead).forEach(([key, value]) => {
       formData.append(key, value);
     });
+    // Add originalLeadId for backend deletion
+    if (convertModal.lead && convertModal.lead._id) {
+      formData.append('originalLeadId', convertModal.lead._id);
+    }
     // Add dynamic fields
     Object.entries(convertFields).forEach(([key, value]) => {
       formData.append(key, value);
@@ -89,7 +93,7 @@ const FollowupLeads = () => {
       if (item.phone) formData.append(`memberDetail[${idx}][phone]`, item.phone);
     });
     try {
-      await axios.post('https://app.zumarlawfirm.com/convertedService', formData, {
+      await axios.post('http://localhost:5000/convertedService', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       toast.success('Lead converted and submitted!');
@@ -98,7 +102,7 @@ const FollowupLeads = () => {
       setConvertFiles({});
       setMemberCnics([]);
       setMemberDetails([]);
-      setSelectedRows([]);
+      setSelectedRow(null);
     } catch (err) {
       toast.error('Failed to convert lead');
     } finally {
@@ -112,7 +116,7 @@ const FollowupLeads = () => {
 
   const fetchLeads = async () => {
     try {
-      const res = await axios.get('https://app.zumarlawfirm.com/leads');
+      const res = await axios.get('http://localhost:5000/leads');
       setLeads(res.data);
     } catch (err) {
       setLeads([]);
@@ -123,7 +127,7 @@ const FollowupLeads = () => {
 
   const handleStatusChange = async (leadId, value) => {
     try {
-      await axios.put(`https://app.zumarlawfirm.com/leads/${leadId}/status`, { status: value });
+      await axios.put(`http://localhost:5000/leads/${leadId}/status`, { status: value });
     } catch (err) {}
     setLeads(prev => {
       // Update status and remove from current page if status changes
@@ -141,7 +145,7 @@ const FollowupLeads = () => {
 
   const handleEditSave = async () => {
     try {
-      await axios.put(`https://app.zumarlawfirm.com/leads/${editModal.lead._id}`, editModal.lead);
+      await axios.put(`http://localhost:5000/leads/${editModal.lead._id}`, editModal.lead);
       setLeads(prev => prev.map(l => l._id === editModal.lead._id ? { ...editModal.lead } : l));
       setEditModal({ open: false, lead: null });
       toast.success('Lead updated successfully');
@@ -154,7 +158,7 @@ const FollowupLeads = () => {
   const handleDeleteLead = async (leadId) => {
     if (!window.confirm('Are you sure you want to delete this lead?')) return;
     try {
-      await axios.delete(`https://app.zumarlawfirm.com/leads/${leadId}`);
+      await axios.delete(`http://localhost:5000/leads/${leadId}`);
       setLeads(prev => prev.filter(l => l._id !== leadId));
       setSelectedRows(prev => prev.filter(id => id !== leadId));
       toast.success('Lead deleted successfully');
@@ -251,7 +255,7 @@ const FollowupLeads = () => {
                   style={{ accentColor: '#57123f', width: 18, height: 18 }}
                 />
               </th>
-              <th className="p-3">Lead Name</th>
+              <th className="p-3">Name and Email</th>
               <th className="p-3">Phone & Registered</th>
               <th className="p-3">Status</th>
               <th className="p-3">Service Interested</th>
@@ -274,7 +278,8 @@ const FollowupLeads = () => {
                   </td>
                   <td className="p-2">
                     <div className="font-semibold">{lead.name}</div>
-                    <div className="text-xs text-gray-500">{lead.cnic}</div>
+                
+                    <div className="text-xs text-gray-700">{lead.email}</div>
                   </td>
                   <td className="p-2">
                     <div className="text-xs text-gray-700">Phone: {lead.phone}</div>
@@ -353,7 +358,6 @@ const FollowupLeads = () => {
             <form onSubmit={handleConvert} encType="multipart/form-data" className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div><span className="font-semibold">Name:</span> {convertModal.lead.name}</div>
-                <div><span className="font-semibold">CNIC:</span> {convertModal.lead.cnic}</div>
                 <div><span className="font-semibold">Phone:</span> {convertModal.lead.phone}</div>
                 <div><span className="font-semibold">Service:</span> {convertModal.lead.service}</div>
               </div>
@@ -542,13 +546,14 @@ const FollowupLeads = () => {
               className="border rounded px-3 py-2 w-full"
               placeholder="Name"
             />
+            {/* Show email input if not present or empty */}
             <input
-              type="text"
-              name="cnic"
-              value={editModal.lead.cnic || ''}
+              type="email"
+              name="email"
+              value={editModal.lead.email || ''}
               onChange={handleEditChange}
               className="border rounded px-3 py-2 w-full"
-              placeholder="CNIC"
+              placeholder="Email"
             />
             <input
               type="text"
