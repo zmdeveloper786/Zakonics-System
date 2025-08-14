@@ -45,14 +45,14 @@ const UserDashboard = () => {
       setLoading(true);
       const token = localStorage.getItem('token');
 
-      const response = await axios.get('https://app.zumarlawfirm.com/userpanel/services', {
+      const response = await axios.get('http://localhost:5000/userpanel/services', {
         headers: {
           Authorization: `Bearer ${token}`
         },
         withCredentials: true
       });
 
-  setUserServices(Array.isArray(response.data) ? response.data : []);
+      setUserServices(response.data);
     } catch (err) {
       console.error('Failed to fetch user services:', err);
     } finally {
@@ -63,7 +63,7 @@ const UserDashboard = () => {
   // Helper to get certificate file URL (assuming backend saves filename in service.certificate)
   const getCertificateUrl = (service) => {
     if (!service.certificate) return null;
-    return `https://app.zumarlawfirm.com/uploads/${service.certificate}`;
+    return `http://localhost:5000/uploads/${service.certificate}`;
   };
 
   // View certificate handler
@@ -91,7 +91,7 @@ const UserDashboard = () => {
   };
 
   // Calculate due payments
-  const dueServices = (Array.isArray(userServices) ? userServices : []).filter(s => s.paymentStatus !== 'submit');
+  const dueServices = userServices.filter(s => s.paymentStatus !== 'submit');
   const [selectedDueRows, setSelectedDueRows] = useState([]);
   const totalDue = dueServices.reduce((sum, s) => sum + (parseFloat(s.paymentAmount) || 0), 0);
 
@@ -148,7 +148,7 @@ const UserDashboard = () => {
     doc.text('Price', 170, y + 6);
     y += 12;
     // Table rows
-  const selected = (Array.isArray(dueServices) ? dueServices : []).filter(s => selectedDueRows.includes(s._id || s.serviceTitle));
+    const selected = dueServices.filter(s => selectedDueRows.includes(s._id || s.serviceTitle));
     selected.forEach((s, i) => {
       const price = serviceData.prices[s.serviceTitle] || s.paymentAmount || 'N/A';
       doc.setTextColor(40, 40, 40);
@@ -169,18 +169,10 @@ const UserDashboard = () => {
     y += 6;
     doc.setFontSize(11);
     doc.setTextColor(40, 40, 40);
-    doc.text('Bank Name: United Bank Limited', 20, y); y += 6;
-    doc.text('Account Title: Zumar Law Associate (Smc-Private) Limited', 20, y); y += 6;
-    doc.text('Account Number: 0352305145103', 20, y); y += 6;
-    doc.text('IBAN: PK88UNIL0109000305145103', 20, y); y += 10;
-
-    doc.text('Bank Name: United Bank Limited', 20, y); y += 6;
+    doc.text('Bank Name: Meezan Bank', 20, y); y += 6;
     doc.text('Account Title: Zumar Law Firm', 20, y); y += 6;
-    doc.text('Account Number: 0352330108476', 20, y); y += 6;
-    doc.text('IBAN: PK16UNIL0109000330108476', 20, y); y += 10;
-
-    
-
+    doc.text('Account Number: 01234567890123', 20, y); y += 6;
+    doc.text('IBAN: PK90MEZN0000001234567890', 20, y); y += 10;
     // Section divider
     doc.setDrawColor(87, 18, 63);
     doc.setLineWidth(0.5);
@@ -193,7 +185,7 @@ const UserDashboard = () => {
     y += 6;
     doc.setFontSize(11);
     doc.setTextColor(40, 40, 40);
-    doc.text('WhatsApp: +92 303 5988574', 20, y); y += 10;
+    doc.text('WhatsApp: +92 325 4992099', 20, y); y += 10;
 
     // Footer with colored background
     doc.setFillColor(87, 18, 63);
@@ -201,7 +193,7 @@ const UserDashboard = () => {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.text('Thank you for choosing Zumar Law Firm.', 105, 287, { align: 'center' });
-    doc.text('For queries, contact: +92 303 5988574', 105, 293, { align: 'center' });
+    doc.text('For queries, contact: +92 325 4992099', 105, 293, { align: 'center' });
 
     doc.save('PaymentSlip.pdf');
   };
@@ -236,40 +228,56 @@ const UserDashboard = () => {
                     <th className="py-2 px-2">Name</th>
                     <th className="py-2 px-2">Member</th>
                     <th className="py-2 px-2">Status</th>
+                    <th className="py-2 px-2">Payment Status</th>
                     <th className="py-2 px-2">View Details</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {userServices.slice(0, 5).map((service, idx) => (
-                    <tr key={service._id} className={
-                      `border-b ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f9f5fc]'} hover:bg-[#f3e8ff]/40 transition`}
-                    >
-                      <td className="py-2 px-2 font-medium">{service.serviceTitle || 'N/A'}</td>
-                      <td className="py-2 px-2">{service.personalId?.name || 'N/A'}</td>
-                      <td className="py-2 px-2">
-                        {(() => {
-                          const status = service.formFields?.status || service.status || 'N/A';
-                          let statusColor = 'bg-gray-100 text-gray-600';
-                          if (status === 'completed') statusColor = 'bg-green-100 text-green-700';
-                          else if (status === 'in-progress') statusColor = 'bg-yellow-100 text-yellow-700';
-                          else if (status === 'pending') statusColor = 'bg-red-100 text-red-700';
-                          return (
-                            <span className={`text-xs px-2 py-1 rounded-full font-semibold shadow ${statusColor}`}>
-                              {status.charAt(0).toUpperCase() + status.slice(1)}
-                            </span>
-                          );
-                        })()}
-                      </td>
-                      <td className="py-2 px-2 flex gap-2 text-[#57123f]">
-                        <button className="hover:text-[#57123f] transition" title="View Certificate" onClick={() => handleViewCertificate(service)}>
-                          <FaEye />
-                        </button>
-                        <button className="hover:text-[#57123f] transition" title="Download Certificate" onClick={() => handleDownloadCertificate(service)}>
-                          <FaDownload />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {userServices
+                    .filter(service => {
+                      const status = service.formFields?.status || service.status;
+                      // Hide if both status and paymentStatus are completed/full
+                      if ((status === 'completed') && (service.paymentStatus === 'completed' || service.paymentStatus === 'full')) return false;
+                      return true;
+                    })
+                    .slice(0, 5)
+                    .map((service, idx) => (
+                      <tr key={service._id} className={
+                        `border-b ${idx % 2 === 0 ? 'bg-white' : 'bg-[#f9f5fc]'} hover:bg-[#f3e8ff]/40 transition`}
+                      >
+                        <td className="py-2 px-2 font-medium">{service.serviceTitle || 'N/A'}</td>
+                        <td className="py-2 px-2">{service.personalId?.name || 'N/A'}</td>
+                        <td className="py-2 px-2">
+                          {(() => {
+                            const status = service.formFields?.status || service.status || 'N/A';
+                            let statusColor = 'bg-gray-100 text-gray-600';
+                            if (status === 'completed') statusColor = 'bg-green-100 text-green-700';
+                            else if (status === 'in-progress') statusColor = 'bg-yellow-100 text-yellow-700';
+                            else if (status === 'pending') statusColor = 'bg-red-100 text-red-700';
+                            return (
+                              <span className={`text-xs px-2 py-1 rounded-full font-semibold shadow ${statusColor}`}>
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                        <td className="py-2 px-2">
+                          {service.paymentStatus ? (
+                            <span className={`text-xs px-2 py-1 rounded-full font-semibold shadow ${service.paymentStatus === 'submit' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{service.paymentStatus.charAt(0).toUpperCase() + service.paymentStatus.slice(1)}</span>
+                          ) : (
+                            <span className="text-xs text-gray-400">N/A</span>
+                          )}
+                        </td>
+                        <td className="py-2 px-2 flex gap-2 text-[#57123f]">
+                          <button className="hover:text-[#57123f] transition" title="View Certificate" onClick={() => handleViewCertificate(service)}>
+                            <FaEye />
+                          </button>
+                          <button className="hover:text-[#57123f] transition" title="Download Certificate" onClick={() => handleDownloadCertificate(service)}>
+                            <FaDownload />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
                 </tbody>
               </table>
             )}
@@ -296,18 +304,20 @@ const UserDashboard = () => {
                 <div className="text-gray-500">No due payments</div>
               ) : (
                 dueServices.map((s, i) => (
-                  <div key={s._id || i} className="flex items-center justify-between py-1">
-                    <div className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="accent-[#57123f] mr-2"
-                        checked={selectedDueRows.includes(s._id || s.serviceTitle)}
-                        onChange={() => handleDueSelectRow(s._id || s.serviceTitle)}
-                      />
-                      <span>{s.serviceTitle || 'Service'}</span>
+                  ((s.paymentStatus === 'full' && (s.formFields?.status || s.status) === 'completed') ? null : (
+                    <div key={s._id || i} className="flex items-center justify-between py-1">
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          className="accent-[#57123f] mr-2"
+                          checked={selectedDueRows.includes(s._id || s.serviceTitle)}
+                          onChange={() => handleDueSelectRow(s._id || s.serviceTitle)}
+                        />
+                        <span>{s.serviceTitle || 'Service'}</span>
+                      </div>
+                      <span className="ml-2 text-[#57123f] font-semibold">{serviceData.prices[s.serviceTitle] ? `${serviceData.prices[s.serviceTitle]} PKR` : (s.paymentAmount ? `${s.paymentAmount} PKR` : 'N/A')}</span>
                     </div>
-                    <span className="ml-2 text-[#57123f] font-semibold">{serviceData.prices[s.serviceTitle] ? `${serviceData.prices[s.serviceTitle]} PKR` : (s.paymentAmount ? `${s.paymentAmount} PKR` : 'N/A')}</span>
-                  </div>
+                  ))
                 ))
               )}
             </div>
@@ -317,61 +327,56 @@ const UserDashboard = () => {
               disabled={selectedDueRows.length === 0}
             >
               Generate Payment Slip (PDF)
-              {/* Payment Slip Modal */}
-              {showSlipModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white p-6 rounded-xl w-full max-w-lg relative">
-                    <button
-                      className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl"
-                      onClick={() => setShowSlipModal(false)}
-                      title="Close"
-                    >
-                      &times;
-                    </button>
-                    <h2 className="text-xl font-bold mb-4 text-[#57123f]">Payment Slip</h2>
-                    <div className="mb-4">
-                      <h3 className="font-semibold mb-2">Selected Services & Charges</h3>
-                      <ul className="list-disc list-inside text-sm">
-                        {(Array.isArray(dueServices) ? dueServices : []).filter(s => selectedDueRows.includes(s._id || s.serviceTitle)).map((s, i) => (
-                          <li key={s._id || i} className="flex justify-between items-center">
-                            <span>{s.serviceTitle || 'Service'}</span>
-                            <span className="ml-2 text-[#57123f] font-semibold">{s.paymentAmount ? `${s.paymentAmount} PKR` : 'N/A'}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                    <div className="mb-4">
-                      <h3 className="font-semibold mb-2">Company Bank Accounts</h3>
-                      <div className="bg-gray-100 p-3 rounded text-sm">
-                        <div><span className="font-bold">Bank Name:</span> United Bank Limited</div>
-                        <div><span className="font-bold">Account Title:</span> Zumar Law Associate (Smc-Private) Limited</div>
-                        <div><span className="font-bold">Account Number:</span> 0352305145103</div>
-                        <div><span className="font-bold">IBAN:</span> PK88UNIL0109000305145103</div>
-                        <div className="mt-2"></div>
-                        <div><span className="font-bold">Bank Name:</span> United Bank Limited</div>
-                        <div><span className="font-bold">Account Title:</span> Zumar Law Firm</div>
-                        <div><span className="font-bold">Account Number:</span> 0352330108476</div>
-                        <div><span className="font-bold">IBAN:</span> PK16UNIL0109000330108476</div>
-                      </div>
-                    </div>
-                    <div className="mb-4">
-                      <h3 className="font-semibold mb-2">WhatsApp for Payment Screenshot</h3>
-                      <div className="bg-green-50 p-3 rounded text-sm">
-                        <span className="font-bold">WhatsApp Number:</span> <a href="https://wa.me/923254992099" target="_blank" rel="noopener noreferrer" className="text-green-700 underline">+92 325 4992099</a>
-                        <div className="mt-2 text-xs text-gray-600">Send your payment screenshot here after submitting your fee.</div>
-                      </div>
-                    </div>
-                    <div className="flex justify-end mt-4">
-                      <button
-                        className="bg-[#57123f] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#4a0f35] transition"
-                        onClick={() => setShowSlipModal(false)}
-                      >
-                        Close
-                      </button>
-                    </div>
-                  </div>
+        {/* Payment Slip Modal */}
+        {showSlipModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl w-full max-w-lg relative">
+              <button
+                className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-2xl"
+                onClick={() => setShowSlipModal(false)}
+                title="Close"
+              >
+                &times;
+              </button>
+              <h2 className="text-xl font-bold mb-4 text-[#57123f]">Payment Slip</h2>
+              <div className="mb-4">
+                <h3 className="font-semibold mb-2">Selected Services & Charges</h3>
+                <ul className="list-disc list-inside text-sm">
+                  {dueServices.filter(s => selectedDueRows.includes(s._id || s.serviceTitle)).map((s, i) => (
+                    <li key={s._id || i} className="flex justify-between items-center">
+                      <span>{s.serviceTitle || 'Service'}</span>
+                      <span className="ml-2 text-[#57123f] font-semibold">{s.paymentAmount ? `${s.paymentAmount} PKR` : 'N/A'}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="mb-4">
+                <h3 className="font-semibold mb-2">Company Bank Accounts</h3>
+                <div className="bg-gray-100 p-3 rounded text-sm">
+                  <div><span className="font-bold">Bank Name:</span> Meezan Bank</div>
+                  <div><span className="font-bold">Account Title:</span> Zumar Law Firm</div>
+                  <div><span className="font-bold">Account Number:</span> 01234567890123</div>
+                  <div><span className="font-bold">IBAN:</span> PK90MEZN0000001234567890</div>
                 </div>
-              )}
+              </div>
+              <div className="mb-4">
+                <h3 className="font-semibold mb-2">WhatsApp for Payment Screenshot</h3>
+                <div className="bg-green-50 p-3 rounded text-sm">
+                  <span className="font-bold">WhatsApp Number:</span> <a href="https://wa.me/923254992099" target="_blank" rel="noopener noreferrer" className="text-green-700 underline">+92 325 4992099</a>
+                  <div className="mt-2 text-xs text-gray-600">Send your payment screenshot here after submitting your fee.</div>
+                </div>
+              </div>
+              <div className="flex justify-end mt-4">
+                <button
+                  className="bg-[#57123f] text-white px-4 py-2 rounded-full font-semibold hover:bg-[#4a0f35] transition"
+                  onClick={() => setShowSlipModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
             </button>
           </div>
         </div>
@@ -386,7 +391,7 @@ const UserDashboard = () => {
               <FaRegFileAlt className="text-[#57123f]" /> Your Services Progress
             </h3>
             <div className="flex items-center gap-2 text-sm">
-              <span className="bg-[#57123f] text-white px-3 py-1 rounded-full font-semibold shadow">Services Done: {(Array.isArray(userServices) ? userServices : []).filter(s => s.formFields?.status === 'completed').length}</span>
+              <span className="bg-[#57123f] text-white px-3 py-1 rounded-full font-semibold shadow">Services Done: {userServices.filter(s => s.formFields?.status === 'completed').length}</span>
               <button className="text-[#57123f] underline hover:text-[#57123f] transition" onClick={() => alert('Filters coming soon!')}>Filters</button>
               <select className="border rounded px-2 py-1">
                 <option>Last Month</option>
@@ -397,7 +402,7 @@ const UserDashboard = () => {
 
           {loading ? (
             <div className="text-center py-8 text-gray-400">Loading...</div>
-          ) : (Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').length === 0 ? (
+          ) : userServices.filter(s => (s.formFields?.status || s.status) === 'completed').length === 0 ? (
             <div className="text-center py-8 text-gray-400">No completed services found.</div>
           ) : (
             <div className="overflow-x-auto rounded-xl">
@@ -408,20 +413,20 @@ const UserDashboard = () => {
                       <input
                         type="checkbox"
                         className="accent-[#57123f]"
-                        checked={(Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').length > 0 && selectedRows.length === (Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').length}
+                        checked={userServices.filter(s => (s.formFields?.status || s.status) === 'completed').length > 0 && selectedRows.length === userServices.filter(s => (s.formFields?.status || s.status) === 'completed').length}
                         onChange={handleSelectAll}
-                        indeterminate={selectedRows.length > 0 && selectedRows.length < (Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').length ? 'true' : undefined}
+                        indeterminate={selectedRows.length > 0 && selectedRows.length < userServices.filter(s => (s.formFields?.status || s.status) === 'completed').length ? 'true' : undefined}
                       />
                     </th>
+                    <th className="p-3 font-bold uppercase tracking-wider text-xs text-[#57123f] bg-opacity-80 text-left">Name</th>
+                    <th className="p-3 font-bold uppercase tracking-wider text-xs text-[#57123f] bg-opacity-80 text-left">Payment Status</th>
                     <th className="p-3 font-bold uppercase tracking-wider text-xs text-[#57123f] bg-opacity-80 text-left">Services</th>
-                    <th className="p-3 font-bold uppercase tracking-wider text-xs text-[#57123f] bg-opacity-80 text-left">Payment Date</th>
-                    <th className="p-3 font-bold uppercase tracking-wider text-xs text-[#57123f] bg-opacity-80 text-left">Payment</th>
                     <th className="p-3 font-bold uppercase tracking-wider text-xs text-[#57123f] bg-opacity-80 text-left">Status</th>
                     <th className="p-3 font-bold uppercase tracking-wider rounded-tr-xl text-xs text-[#57123f] bg-opacity-80 text-left">Certificates</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(Array.isArray(userServices) ? userServices : []).filter(s => (s.formFields?.status || s.status) === 'completed').map((service, index) => {
+                  {userServices.filter(s => (s.formFields?.status || s.status) === 'completed').map((service, index) => {
                     const rowId = service._id || service.serviceTitle;
                     return (
                       <tr
@@ -437,15 +442,21 @@ const UserDashboard = () => {
                             onChange={() => handleSelectRow(rowId)}
                           />
                         </td>
+                        <td className="p-2 font-semibold text-[#57123f] align-middle">{service.personalId?.name || 'N/A'}</td>
+                        <td className="p-2 align-middle">
+                          {service.paymentStatus ? (
+                            <span className={`text-xs px-2 py-1 rounded-full font-semibold shadow ${service.paymentStatus === 'submit' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{service.paymentStatus.charAt(0).toUpperCase() + service.paymentStatus.slice(1)}</span>
+                          ) : (
+                            <span className="text-xs text-gray-400">N/A</span>
+                          )}
+                          {/* Hide payment slip if both service status is 'completed' and payment status is 'full' */}
+                          {((service.paymentStatus !== 'full' || (service.formFields?.status || service.status) !== 'completed') && service.paymentSlip) && (
+                            <div className="mt-1">
+                              <a href={service.paymentSlip} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 underline">View Slip</a>
+                            </div>
+                          )}
+                        </td>
                         <td className="p-2 font-semibold text-[#57123f] align-middle">{service.serviceTitle || 'N/A'}</td>
-                        <td className="p-2 align-middle">
-                          {service.paymentStatus === 'submit' && service.paymentDate
-                            ? <span className="bg-green-50 text-green-700 px-2 py-1 rounded font-medium text-xs shadow">{new Date(service.paymentDate).toLocaleDateString()}</span>
-                            : <span className="bg-gray-50 text-gray-400 px-2 py-1 rounded font-medium text-xs shadow">N/A</span>}
-                        </td>
-                        <td className="p-2 align-middle">
-                          {service.paymentAmount ? <span className="bg-purple-50 text-[#57123f] px-2 py-1 rounded font-medium text-xs shadow">{service.paymentAmount} PKR</span> : <span className="bg-gray-50 text-gray-400 px-2 py-1 rounded font-medium text-xs shadow">N/A</span>}
-                        </td>
                         <td className="p-2 align-middle">
                           {(() => {
                             const status = service.formFields?.status || service.status || 'N/A';
