@@ -49,14 +49,10 @@ const StatsCards = () => {
         }
         console.log(`Fetching stats for:`, url);
         const res = await axios.get(url);
-        let data = res.data;
-        if (!Array.isArray(data) && (typeof data !== 'object' || data === null)) {
-          data = [];
-        }
-        setStats(data);
-        console.log('Stats response:', data);
+        setStats(res.data);
+        console.log('Stats response:', res.data);
       } catch (err) {
-        setStats(prev => (Array.isArray(prev) ? prev.map(s => ({ ...s, value: 'Error', color: 'text-red-500' })) : []));
+        setStats(prev => prev.map(s => ({ ...s, value: 'Error', color: 'text-red-500' })));
       } finally {
         setLoading(false);
       }
@@ -127,7 +123,7 @@ const StatsCards = () => {
         ))}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 my-6">
-  {(Array.isArray(stats) ? stats : Object.values(stats || {})).map((stat, idx) => {
+        {(Array.isArray(stats) ? stats : Object.values(stats)).map((stat, idx) => {
           // Special handling for Completed Service Prices array
           if (stat.title === 'Completed Service Prices' && Array.isArray(stat.value)) {
             return (
