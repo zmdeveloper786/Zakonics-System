@@ -28,18 +28,8 @@ export const sendInvoiceAndCertificate = async (req, res) => {
     const user = service.personalId;
     if (!user || !user.email) return res.status(400).json({ error: 'User email not found' });
 
-    // Prepare invoice PDF (simple text for now, can be improved)
-    const invoiceText = `Invoice for ${user.name}\nService: ${service.serviceTitle}\nDate: ${new Date().toLocaleDateString()}\nStatus: ${service.status || 'pending'}`;
-    const invoicePath = path.join(__dirname, `../uploads/invoice-${service._id}.txt`);
-    fs.writeFileSync(invoicePath, invoiceText);
-
-    // Prepare certificate file if exists
-    let attachments = [
-      {
-        filename: `invoice-${service._id}.txt`,
-        path: invoicePath,
-      },
-    ];
+    // Only attach certificate
+    let attachments = [];
     if (service.certificate) {
       attachments.push({
         filename: service.certificate,
@@ -51,19 +41,15 @@ export const sendInvoiceAndCertificate = async (req, res) => {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: user.email,
-      subject: `Your Invoice and Certificate for ${service.serviceTitle}`,
-      text: `Dear ${user.name},\n\nPlease find attached your invoice and certificate for the service: ${service.serviceTitle}.\n\nThank you for choosing Zumar Law Firm.`,
+      subject: `Your Certificate for ${service.serviceTitle}`,
+      text: `Dear ${user.name},\n\nPlease find attached your certificate for the service: ${service.serviceTitle}.\n\nThank you for choosing Zumar Law Firm.`,
       attachments,
     });
 
-    // Optionally: Save invoice/certificate info to service for dashboard display
     service.invoiceSent = true;
     await service.save();
 
-    // Clean up invoice file
-    fs.unlinkSync(invoicePath);
-
-    res.json({ message: 'Invoice and certificate sent to user email!' });
+    res.json({ message: 'Certificate sent to user email!' });
   } catch (err) {
     console.error('Send invoice error:', err);
     res.status(500).json({ error: 'Failed to send invoice/certificate' });

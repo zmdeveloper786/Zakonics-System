@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch ,FaEye, FaDownload } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import ZumarLogo from '../../assets/ZumarLogo.png';
 
@@ -373,6 +373,7 @@ const ConvertedService = () => {
                 <th className="px-4 py-3">Service</th>
                 <th className="px-4 py-3">Assigned To</th>
                 <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -443,6 +444,41 @@ const ConvertedService = () => {
                       <option value="completed">Completed</option>
                     </select>
                   </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        <button
+                          title="View Certificate"
+                          className="text-[#57123f] hover:text-[#a8326e]"
+                          onClick={() => {
+                            if (row.certificate) {
+                              window.open(`/uploads/${row.certificate}`, '_blank');
+                            } else {
+                              toast.error('No certificate found for this service');
+                            }
+                          }}
+                        >
+                          <FaEye />
+                        </button>
+                        <button
+                          title="Download Certificate"
+                          className="text-[#57123f] hover:text-[#a8326e]"
+                          onClick={() => {
+                            if (row.certificate) {
+                              const link = document.createElement('a');
+                              link.href = `/uploads/${row.certificate}`;
+                              link.download = row.certificate;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                            } else {
+                              toast.error('No certificate found for this service');
+                            }
+                          }}
+                        >
+                          <FaDownload />
+                        </button>
+                      </div>
+                    </td>
                 </tr>
               ))}
               {currentData.length === 0 && !loading && (
@@ -533,7 +569,7 @@ const ConvertedService = () => {
                         toast.success('Invoice downloaded successfully');
                       }}
                     >
-                      Download Invoice
+                      Download <Details></Details>
                     </button>
                     <button
                       className="w-full border border-[#57123f] text-[#57123f] rounded-lg py-2 font-semibold hover:bg-[#f7f0f5] transition"
@@ -710,7 +746,7 @@ const ConvertedService = () => {
                         }
                       }}
                     >
-                      Send Invoice
+                      Send Certificate
                     </button>
                   </div>
                   <div className="text-xs text-gray-500 text-center mt-2">Note: The files/documents can be downloaded individually.</div>

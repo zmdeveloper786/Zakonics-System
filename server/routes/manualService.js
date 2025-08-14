@@ -27,56 +27,12 @@ router.post('/:id/send-invoice', async (req, res) => {
     if (!submission) return res.status(404).json({ error: 'Submission not found' });
     if (!submission.email) return res.status(400).json({ error: 'No email found for this submission' });
 
-    // Collect files: certificate, images, documents
-    const files = [];
-    // Add uploaded certificate if present
-    if (submission.certificate) files.push({ path: path.join('uploads', submission.certificate), name: submission.certificate });
-
-    // Collect images/documents from fields
-    const fileExt = /\.(jpg|jpeg|png|pdf|docx?|xlsx?|xls|pptx?|ppt)$/i;
-    const collectFiles = (val) => {
-      if (typeof val === 'string' && fileExt.test(val)) {
-        const cleanName = val.replace(/.*uploads[\\/]/, '');
-        files.push({ path: path.join('uploads', cleanName), name: cleanName });
-      } else if (Array.isArray(val)) {
-        val.forEach(collectFiles);
-      } else if (typeof val === 'object' && val !== null) {
-        Object.values(val).forEach(collectFiles);
-      }
-    };
-    if (submission.fields) {
-      Object.values(submission.fields).forEach(collectFiles);
+    // Only attach certificate
+    let attachments = [];
+    if (submission.certificate) {
+      const certPath = path.join('uploads', submission.certificate);
+      attachments.push({ filename: submission.certificate, path: certPath });
     }
-    if (Array.isArray(submission.cnicGroups)) {
-      submission.cnicGroups.forEach(group => {
-        if (group.front) collectFiles(group.front);
-        if (group.back) collectFiles(group.back);
-      });
-    }
-
-    // Generate invoice PDF and add to files
-    const invoiceFileName = `invoice-${submission._id}.pdf`;
-    const invoiceFilePath = path.join('uploads', invoiceFileName);
-    const doc = new PDFDocument();
-    const writeStream = fs.createWriteStream(invoiceFilePath);
-    doc.pipe(writeStream);
-    doc.fontSize(20).text('Zumar Law Firm Invoice', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text(`Service: ${submission.serviceType || submission.service || ''}`);
-    doc.text(`Name: ${submission.name || ''}`);
-    doc.text(`Email: ${submission.email || ''}`);
-    doc.text(`Phone: ${submission.phone || ''}`);
-    doc.text(`CNIC: ${submission.cnic || ''}`);
-    doc.text(`Status: ${submission.status || ''}`);
-    doc.text(`Date: ${submission.createdAt ? new Date(submission.createdAt).toLocaleDateString() : ''}`);
-    doc.moveDown();
-    doc.text('Thank you for choosing Zumar Law Firm.');
-    doc.end();
-    await new Promise((resolve) => writeStream.on('finish', resolve));
-    files.push({ path: invoiceFilePath, name: invoiceFileName });
-
-    // Prepare attachments for email
-    const attachments = files.map(f => ({ filename: f.name, path: f.path }));
 
     // Send email to user (Gmail, not SMTP)
     const transporter = nodemailer.createTransport({
@@ -90,12 +46,12 @@ router.post('/:id/send-invoice', async (req, res) => {
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
       to: submission.email,
-      subject: 'Your Service Invoice and Documents',
-      text: 'Please find attached your invoice and related documents.',
+      subject: `Your Certificate for ${submission.serviceType || submission.service || ''}`,
+      text: `Dear ${submission.name},\n\nPlease find attached your certificate for the service: ${submission.serviceType || submission.service || ''}.\n\nThank you for choosing Zumar Law Firm.`,
       attachments
     });
 
-    res.json({ message: 'Invoice and documents sent to user.' });
+    res.json({ message: 'Certificate sent to user email!' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });

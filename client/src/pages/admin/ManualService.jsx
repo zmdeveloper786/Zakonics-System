@@ -185,7 +185,7 @@ function InvoiceContent({ invoiceData }) {
   );
 }
 import axios from 'axios';
-import { FaSearch } from 'react-icons/fa';
+import { FaSearch, FaEye, FaDownload } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 
 const PAGE_SIZE = 10;
@@ -221,10 +221,10 @@ function AssignedToDropdown({ employees, assignedTo, onAssign }) {
 // Status button (copied from ServiceProcessingPage)
 const statusColors = {
   pending: 'bg-yellow-400 text-black',
-  'in-progress': 'bg-blue-400 text-white',
+  processing: 'bg-blue-400 text-white',
   completed: 'bg-green-500 text-white',
 };
-const statusOrder = ['pending', 'in-progress', 'completed'];
+const statusOrder = ['pending', 'processing', 'completed'];
 function StatusButton({ status, onClick }) {
   const [isAnimating, setIsAnimating] = useState(false);
   const safeStatus = status || 'pending';
@@ -521,7 +521,7 @@ function StatusButton({ status, onClick }) {
                 <th className="px-4 py-3">Service</th>
                 <th className="px-4 py-3">Assigned To</th>
                 <th className="px-4 py-3">Status</th>
-                {/* <th className="px-4 py-3">Certificate</th> */}
+                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -557,20 +557,41 @@ function StatusButton({ status, onClick }) {
                   <td className="px-4 py-3">
                     <StatusButton status={row.status} onClick={() => handleStatusCycle(row)} />
                   </td>
-                  {/* <td className="px-4 py-3">
-                    {row.certificate ? (
-                      <a
-                        href={`https://app.zumarlawfirm.com/uploads/${encodeURIComponent(row.certificate)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-green-700 underline text-xs"
+                  <td className="px-4 py-3">
+                    <div className="flex gap-2">
+                      <button
+                        title="View Certificate"
+                        className="text-[#57123f] hover:text-[#a8326e]"
+                        onClick={() => {
+                          if (row.certificate) {
+                            window.open(`/uploads/${row.certificate}`, '_blank');
+                          } else {
+                            toast.error('No certificate found for this service');
+                          }
+                        }}
                       >
-                        View
-                      </a>
-                    ) : (
-                      <span className="text-xs text-gray-400">No Certificate</span>
-                    )}
-                  </td> */}
+                        <FaEye />
+                      </button>
+                      <button
+                        title="Download Certificate"
+                        className="text-[#57123f] hover:text-[#a8326e]"
+                        onClick={() => {
+                          if (row.certificate) {
+                            const link = document.createElement('a');
+                            link.href = `/uploads/${row.certificate}`;
+                            link.download = row.certificate;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          } else {
+                            toast.error('No certificate found for this service');
+                          }
+                        }}
+                      >
+                        <FaDownload />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
               {currentData.length === 0 && !loading && (
@@ -597,7 +618,7 @@ function StatusButton({ status, onClick }) {
                   >
                     &times;
                   </button>
-                  <h2 className="text-xl font-bold text-center mb-6 mt-2">Download Invoice</h2>
+                  <h2 className="text-xl font-bold text-center mb-6 mt-2">Download Details</h2>
                   <div className="flex flex-col gap-3 mb-4">
                     <button
                       className="w-full border border-[#57123f] text-[#57123f] rounded-lg py-2 font-semibold hover:bg-[#f7f0f5] transition"
@@ -794,7 +815,7 @@ function StatusButton({ status, onClick }) {
                         }
                       }}
                     >
-                      Send Invoice
+                      Send Certificate
                     </button>
                   </div>
                   <div className="text-xs text-gray-500 text-center mt-2">Note: The files/documents can be downloaded individually.</div>

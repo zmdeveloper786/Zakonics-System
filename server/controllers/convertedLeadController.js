@@ -87,84 +87,31 @@ export const sendInvoice = async (req, res) => {
     if (!recipientEmail) {
       return res.status(400).json({ success: false, message: 'No recipient email found for this lead.' });
     }
-    // Generate PDF invoice in memory
-    const doc = new PDFDocument();
-    let buffers = [];
-    doc.on('data', buffers.push.bind(buffers));
-    doc.on('end', async () => {
-      const pdfData = Buffer.concat(buffers);
-      // Prepare download links for files
-      let fileLinks = [];
-      let attachments = [{ filename: 'invoice.pdf', content: pdfData }];
-      const uploadsPath = path.join(process.cwd(), 'uploads');
-      if (lead.files) {
-        const base = `${req.protocol}://${req.get('host')}/uploads/`;
-        Object.values(lead.files).forEach(f => {
-          if (Array.isArray(f)) {
-            f.forEach(file => {
-              fileLinks.push(base + encodeURIComponent(file));
-              // Attach file if exists
-              const filePath = path.join(uploadsPath, file);
-              if (fs.existsSync(filePath)) {
-                attachments.push({ filename: file, path: filePath });
-              }
-            });
-          } else if (typeof f === 'string') {
-            fileLinks.push(base + encodeURIComponent(f));
-            const filePath = path.join(uploadsPath, f);
-            if (fs.existsSync(filePath)) {
-              attachments.push({ filename: f, path: filePath });
-            }
-          }
-        });
+    // Only attach certificate
+    let attachments = [];
+    const uploadsPath = path.join(process.cwd(), 'uploads');
+    if (lead.certificate) {
+      const certPath = path.join(uploadsPath, lead.certificate);
+      if (fs.existsSync(certPath)) {
+        attachments.push({ filename: lead.certificate, path: certPath });
       }
-      if (lead.certificate) {
-        const certPath = path.join(uploadsPath, lead.certificate);
-        if (fs.existsSync(certPath)) {
-          attachments.push({ filename: lead.certificate, path: certPath });
-          fileLinks.push(`${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(lead.certificate)}`);
-        }
-      }
-      // Attach docs if present
-      if (Array.isArray(lead.docs)) {
-        lead.docs.forEach(docMeta => {
-          if (docMeta.filename) {
-            const docPath = path.join(uploadsPath, docMeta.filename);
-            if (fs.existsSync(docPath)) {
-              attachments.push({ filename: docMeta.originalName || docMeta.filename, path: docPath });
-              fileLinks.push(`${req.protocol}://${req.get('host')}/uploads/${encodeURIComponent(docMeta.filename)}`);
-            }
-          }
-        });
-      }
-      // Send email
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: recipientEmail,
-        subject: `Your Invoice for ${lead.service || 'Service'}`,
-        text: `Dear ${lead.name || 'User'},\n\nPlease find attached your invoice and all related documents.\n\nDownload your files here:\n${fileLinks.join('\n')}`,
-        attachments,
-      });
-      res.json({ success: true, message: 'Invoice and documents sent' });
+    }
+    // Send email
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
     });
-    // Compose PDF content
-    doc.fontSize(18).text('Invoice', { align: 'center' });
-    doc.moveDown();
-    doc.fontSize(12).text(`Name: ${lead.name || ''}`);
-    doc.text(`Phone: ${lead.phone || ''}`);
-    doc.text(`Email: ${lead.email || ''}`);
-    doc.text(`Service: ${lead.service || ''}`);
-    doc.text(`Status: ${lead.status || ''}`);
-    doc.moveDown();
-    doc.text('Thank you for using our service.');
-    doc.end();
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: recipientEmail,
+      subject: `Your Certificate for ${lead.service || 'Service'}`,
+      text: `Dear ${lead.name || 'User'},\n\nPlease find attached your certificate for the service: ${lead.service || 'Service'}.\n\nThank you for choosing Zumar Law Firm.`,
+      attachments,
+    });
+    res.json({ success: true, message: 'Certificate sent to user email!' });
   } catch (err) {
   console.error('Error sending invoice:', err);
   res.status(500).json({ success: false, message: err.message });

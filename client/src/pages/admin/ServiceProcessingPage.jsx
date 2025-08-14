@@ -3,11 +3,12 @@ import axios from 'axios';
 import {
   FaSearch,
   FaIdCard,
-  FaFileInvoice
+  FaFileInvoice,
+  FaEye,
+  FaDownload
 } from 'react-icons/fa';
 import { toast } from 'react-hot-toast';
 import ZumarLogo from '../../assets/ZumarLogo.png';
-
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
@@ -117,6 +118,8 @@ const ServiceProcessingPage = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRows, setSelectedRows] = useState([]);
+  // Certificate modal state
+  const [certificateModal, setCertificateModal] = useState({ open: false, certUrl: '' });
   const [selectAll, setSelectAll] = useState(false);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
@@ -258,7 +261,6 @@ const ServiceProcessingPage = () => {
     else setSelectAll(false);
   };
 
-  // Handle select all checkbox is already declared below, so do not redeclare
 
 
   const handleSelectAll = () => {
@@ -271,7 +273,7 @@ const ServiceProcessingPage = () => {
     }
   };
 
-  // Upload certificate for a selected service row (save as pending, not sent to user yet)
+ 
   const handleCertificateUpload = async (e) => {
     e.preventDefault();
     if (!selectedFile || !selectedRow) {
@@ -280,7 +282,7 @@ const ServiceProcessingPage = () => {
     }
     const formData = new FormData();
     formData.append('certificate', selectedFile);
-    // Mark as pending in backend (backend should save as certificatePending or similar)
+    
     try {
       await axios.post(
         `https://app.zumarlawfirm.com/admin/services/${selectedRow._id}/certificate?pending=true`,
@@ -467,18 +469,19 @@ const ServiceProcessingPage = () => {
           </button>
         </div>
         <div className="overflow-x-auto rounded-lg shadow-sm border border-gray-200 max-h-[400px]">
-          <table className="w-full lg:text-[12px] md:text-[10px] text-left text-gray-800">
+          <table className="w-full lg:text-[11px] md:text-[10px] text-left text-gray-800">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr className="text-gray-600 uppercase tracking-wide">
-                <th className="px-4 py-3">
+                <th className="px-3 py-3">
                   <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
                 </th>
-                <th className="px-4 py-3">Name & CNIC</th>
-                <th className="px-4 py-3">Email & Phone</th>
-                <th className="px-4 py-3">Service</th>
-                <th className="px-4 py-3">Assigned To</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Payment</th>
+                <th className="px-3 py-3">Name & CNIC</th>
+                <th className="px-3 py-3">Email & Phone</th>
+                <th className="px-3 py-3">Service</th>
+                <th className="px-3 py-3">Assigned To</th>
+                <th className="px-3 py-3">Status</th>
+                <th className="px-3 py-3">Payment</th>
+                <th className="px-3 py-3">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -491,50 +494,86 @@ const ServiceProcessingPage = () => {
                   key={row._id}
                   className={`transition-all ${selectedRows.some(r => r._id === row._id) ? 'bg-yellow-50' : 'hover:bg-gray-50'}`}
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <input
                       type="checkbox"
                       checked={selectedRows.includes(row._id)}
                       onChange={() => handleCheckboxChange(row)}
                     />
                   </td>
-                  <td className="px-4 py-3 min-w-[120px] align-top">
+                  <td className="px-3 py-3 min-w-[120px] align-top">
                     <div className="grid grid-cols-1 gap-x-2 gap-y-1">
                       <div>
-                        <span className="font-semibold text-gray-900 text-xs block" title={row.personalId?.name || ''}>
+                        <span className="font-semibold text-gray-900 text-[11px] block" title={row.personalId?.name || ''}>
                           {row.personalId?.name || 'N/A'}
                         </span>
-                        <span className="text-gray-500 text-[12px] block" title={row.personalId?.cnic || ''}>
+                        <span className="text-gray-500 text-[11px] block" title={row.personalId?.cnic || ''}>
                           {row.personalId?.cnic || 'N/A'}
                         </span>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 min-w-[120px] align-top">
+                  <td className="px-3 py-3 min-w-[120px] align-top">
                     <div className="grid grid-cols-1 gap-x-2 gap-y-1">
                       <div>
-                        <span className="text-gray-900 font-semibold text-[12px] block max-w-[120px]" title={row.personalId?.email || ''}>
+                        <span className="text-gray-900 font-semibold text-[11px] block max-w-[120px]" title={row.personalId?.email || ''}>
                           {row.personalId?.email || 'N/A'}
                         </span>
-                        <span className="text-gray-500 text-[12px] block" title={row.personalId?.phone || ''}>
+                        <span className="text-gray-500 text-[11px] block" title={row.personalId?.phone || ''}>
                           {row.personalId?.phone || 'N/A'}
                         </span>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3" title={row.serviceTitle || ''}>{row.serviceTitle || 'N/A'}</td>
-                  <td className="px-4 py-3" title={row.assignedTo || ''}>
+                  <td className="px-3 py-3" title={row.serviceTitle || ''}>{row.serviceTitle || 'N/A'}</td>
+                  <td className="px-3 py-3" title={row.assignedTo || ''}>
                     <AssignedToDropdown
                       employees={employees}
                       assignedTo={row.assignedTo}
                       onAssign={empName => handleAssignEmployee(row, empName)}
                     />
                   </td>
-                  <td className="px-4 py-3 ">
+                  <td className="px-3 py-3 ">
                     <StatusButton status={row.status} onClick={() => handleStatusCycle(row)} />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <PaymentStatusButton paymentStatus={row.paymentStatus || 'pending'} onClick={() => handlePaymentStatusCycle(row)} />
+                  </td>
+                  <td className="px-3 py-3">
+                    <div className="flex gap-2">
+                      <button
+                        title="View Certificate"
+                        className="text-[#57123f] hover:text-[#a8326e]"
+                        onClick={() => {
+                          if (row.certificate) {
+                            window.open(`/uploads/${row.certificate}`, '_blank');
+                          } else {
+                            toast.error('No certificate found for this service');
+                          }
+                        }}
+                      >
+                        <FaEye />
+                      </button>
+                      <button
+                        title="Download Certificate"
+                        className="text-[#57123f] hover:text-[#a8326e]"
+                        onClick={() => {
+                          if (row.certificate) {
+                            const link = document.createElement('a');
+                            link.href = `/uploads/${row.certificate}`;
+                            link.download = row.certificate;
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                          } else {
+                            toast.error('No certificate found for this service');
+                          }
+                        }}
+                      >
+                        <FaDownload />
+                      </button>
+                    </div>
+  {/* Removed certificate modal logic. FaEye now opens certificate in new tab. */}
                   </td>
                 </tr>
               ))}
@@ -673,7 +712,7 @@ const ServiceProcessingPage = () => {
                       toast.success('Invoice downloaded successfully');
                     }}
                   >
-                    Download Invoice
+                    Download Details
                   </button>
                   <button
                     className="w-full border border-[#57123f] text-[#57123f] rounded-lg py-2 font-semibold hover:bg-[#f7f0f5] transition"
@@ -785,7 +824,7 @@ const ServiceProcessingPage = () => {
                       }
                     }}
                   >
-                    Send Invoice
+                    Send Certificate
                   </button>
                 </div>
                 <div className="text-xs text-gray-500 text-center mt-2">Note: The files/documents can be downloaded individually.</div>
